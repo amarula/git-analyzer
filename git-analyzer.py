@@ -1,10 +1,8 @@
 import os
 import shutil
 import datetime
-import tempfile
 import configparser
 import argparse
-import shutil
 from git import Repo, InvalidGitRepositoryError, NoSuchPathError, GitCommandError
 
 def git_pull_or_clone(remote_url=None, repo_path="."):
