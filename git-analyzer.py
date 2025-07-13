@@ -8,7 +8,7 @@ from git import Repo, GitCommandError
 
 
 def analyze_real_git_commits(
-    repo_urls: list[str], company_identifier: str, months_back: int
+    repo_urls: list[str], company_identifier: str, months_back: int, deploy_dir_name: str
 ) -> dict:
     """
     Clones Git repositories, finds commits by a specified company within a timeframe,
@@ -18,28 +18,32 @@ def analyze_real_git_commits(
         repo_urls: A list of Git repository URLs.
         company_identifier: A string to identify company commits (e.g., email domain or part of the committer name).
         months_back: An integer representing the number of months to look back for commits.
+        deploy_dir_name: The name of the directory where repositories will be cloned.
 
     Returns:
         A dictionary containing the structured commit data or an error message.
     """
-    temp_dir = None
     all_repo_commits_structured = []
 
+    project_root = os.getcwd()
+    deploy_target_dir = os.path.join(project_root, deploy_dir_name)
+
     try:
-        temp_dir = tempfile.mkdtemp()
+        # Ensure the deploy directory exists
+        os.makedirs(deploy_target_dir, exist_ok=True)
 
         # Calculate the 'since' date for commit filtering
         since_date = datetime.datetime.now() - datetime.timedelta(days=months_back * 30)
 
         for repo_url in repo_urls:
             repo_name = repo_url.split("/")[-1].replace(".git", "")
-            repo_path = os.path.join(temp_dir, repo_name)
+            repo_path = os.path.join(deploy_target_dir, repo_name)
 
-            print(f"Cloning {repo_url} into {repo_path}...")
+            print(f"Cloning {repo_url} directly into {repo_path}...")
             try:
-                # Clone the repository using GitPython
                 repo = Repo.clone_from(repo_url, repo_path)
                 print(f"Successfully cloned {repo_name}.")
+
             except GitCommandError as e:
                 error_msg = str(e)
                 print(f"Error cloning repository {repo_url}: {error_msg}")
@@ -132,11 +136,6 @@ def analyze_real_git_commits(
     except Exception as e:
         print(f"An unexpected error occurred in analyze_real_git_commits: {e}")
         return {"error": f"An unexpected error occurred: {str(e)}"}
-    finally:
-        if temp_dir and os.path.exists(temp_dir):
-            shutil.rmtree(temp_dir)
-            print(f"Cleaned up temporary directory: {temp_dir}")
-
 
 def generate_article_content(commit_data: list[dict], months_back: int) -> str:
     """
@@ -217,6 +216,7 @@ def load_config_from_ini(file_path: str) -> dict | None:
                 config["GitConfig"].get("company_identifier", "").strip()
             )
             git_config["months_back"] = config["GitConfig"].getint("months_back", None)
+            git_config["deploy_dir"] = config["GitConfig"].get("deploy_dir", None)
         return git_config
     except Exception as e:
         print(f"Error reading INI file {file_path}: {e}")
@@ -263,6 +263,13 @@ def main():
         nargs="?",  # Allows the argument to be optional, if present without value, it's None
         const="git_report.md",  # Default value if -s is present without an argument
     )
+    parser.add_argument(
+        "-d",
+        "--deploy-dir",
+        help="Name of the directory to clone repositories into (default: 'deploy').",
+        type=str,
+        default="deploy",
+    )
 
     args = parser.parse_args()
 
@@ -270,6 +277,7 @@ def main():
     company_identifier = ""
     months_back = None
     save_file_name = None
+    deploy_dir = None
 
     config_loaded_successfully = False
 
@@ -280,6 +288,7 @@ def main():
             repo_urls = config_data.get("repo_urls", [])
             company_identifier = config_data.get("company_identifier", "")
             months_back = config_data.get("months_back", None)
+            deploy_dir = config_data.get("deploy_dir", None)
             config_loaded_successfully = True
             print(f"Configuration loaded from {args.config_file}.")
         else:
@@ -297,12 +306,18 @@ def main():
             company_identifier = args.company_identifier.strip()
         if args.months_back is not None:
             months_back = args.months_back
+        if args.deploy_dir:
+            deploy_dir = args.deploy_dir
 
-    # The save_to_file argument always takes precedence from CLI
+    if args.deploy_dir:
+        deploy_dir = args.deploy_dir
+
+    if deploy_dir is None:
+        deploy_dir = "deploy"
+
     if args.save_to_file is not None:
         save_file_name = args.save_to_file
 
-    # 3. Prompt for missing values (lowest priority)
     if not repo_urls:
         repo_urls_input = input(
             "Enter Git repository URLs (comma-separated, e.g., https://github.com/org/repo1.git,https://github.com/org/repo2.git): "
@@ -335,9 +350,8 @@ def main():
                 print("Invalid input. Please enter a positive integer for months.")
 
     print("\nStarting real Git analysis...")
-    # Step 1: Perform real Git commit analysis
     analysis_result = analyze_real_git_commits(
-        repo_urls, company_identifier, months_back
+        repo_urls, company_identifier, months_back, deploy_dir
     )
 
     if "error" in analysis_result:
@@ -346,14 +360,12 @@ def main():
 
     commit_data = analysis_result.get("commit_data", [])
 
-    # Step 2: Generate article content
     article = generate_article_content(commit_data, months_back)
 
     print("\n--- Generated Article ---")
     print(article)
     print("\n--- End of Article ---")
 
-    # Handle saving to file based on CLI arg or prompt
     if save_file_name:
         try:
             with open(save_file_name, "w", encoding="utf-8") as f:
