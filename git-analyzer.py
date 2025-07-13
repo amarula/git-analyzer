@@ -5,6 +5,37 @@ import configparser
 import argparse
 from git import Repo, InvalidGitRepositoryError, NoSuchPathError, GitCommandError
 
+def generate_commit_hyperlink(repo_path, base_web_url, commit_hash_prefix):
+    """
+    Generates an hyperlink to a Git commit on a web platform.
+
+    Args:
+        repo_path (str): The path to the local Git repository.
+        base_web_url (str): The base URL for the repository on the web
+                            (e.g., "https://github.com/your_username/your_repo").
+        commit_hash_prefix (str): A full or partial commit hash.
+
+    Returns:
+        str: The hyperlink string, or None if the commit is not found.
+    """
+    try:
+        repo = Repo(repo_path)
+        commit = repo.commit(commit_hash_prefix)
+
+        commit_full_hash = commit.hexsha
+        commit_message = commit.summary
+        if base_web_url.endswith(".git"):
+            base_web_url = base_web_url[:-4]
+
+        commit_url = f"{base_web_url}/commit/{commit_full_hash}"
+
+        hyperlink = f'{commit_url}'
+        return hyperlink
+
+    except Exception as e:
+        print(f"Error generating hyperlink: {e}")
+        return None
+
 def git_pull_or_clone(remote_url=None, repo_path="."):
     """
     Checks if a directory is a Git repository.
@@ -137,6 +168,7 @@ def analyze_real_git_commits(
                     {
                         "repo_name": repo_name,
                         "repo_url": repo_url,
+                        "repo_path": repo_path,
                         "error": f"Failed to clone: {error_msg}",
                         "commits": [],  # No commits if clone failed
                     }
@@ -150,6 +182,7 @@ def analyze_real_git_commits(
                     {
                         "repo_name": repo_name,
                         "repo_url": repo_url,
+                        "repo_path": repo_path,
                         "error": f"An unexpected error occurred during cloning: {str(e)}",
                         "commits": [],
                     }
@@ -168,6 +201,7 @@ def analyze_real_git_commits(
                     author_email = commit.author.email
                     commit_date = datetime.datetime.fromtimestamp(commit.authored_date).isoformat()
                     commit_message = commit.message.strip()
+                    sha1_hash = commit.hexsha
 
                     # Filter by company identifier (case-insensitive)
                     if (
@@ -181,6 +215,7 @@ def analyze_real_git_commits(
                                 "author_email": author_email,
                                 "date": commit_date,
                                 "message": commit_message,
+                                "sha1": sha1_hash,
                             }
                         )
 
@@ -188,6 +223,7 @@ def analyze_real_git_commits(
                     {
                         "repo_name": repo_name,
                         "repo_url": repo_url,
+                        "repo_path": repo_path,
                         "commits": repo_commits_list,
                     }
                 )
@@ -199,6 +235,7 @@ def analyze_real_git_commits(
                     {
                         "repo_name": repo_name,
                         "repo_url": repo_url,
+                        "repo_path": repo_path,
                         "error": f"Failed to get commit log: {error_msg}",
                         "commits": [],
                     }
@@ -209,6 +246,7 @@ def analyze_real_git_commits(
                     {
                         "repo_name": repo_name,
                         "repo_url": repo_url,
+                        "repo_path": repo_path,
                         "error": f"Error processing commits: {str(e)}",
                         "commits": [],
                     }
@@ -265,7 +303,8 @@ Here's a breakdown of key contributions by repository:
                     else "(No message)"
                 )
                 first_line_message = first_line_message.replace("_", r"\_")
-                article_content += f"- **{commit['author_name']}** on {commit['date'].split('T')[0]}: {first_line_message}\n"
+                hyperlink = generate_commit_hyperlink(repo['repo_path'], repo['repo_url'], commit['sha1'])
+                article_content += f"- **{commit['author_name']}** on {commit['date'].split('T')[0]}: [{first_line_message}]({hyperlink})\n"
             article_content += "\n"
         else:
             article_content += f"No company-specific commits were identified in this repository during the last {months_back} months.\n\n"
