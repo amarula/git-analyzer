@@ -2,6 +2,19 @@
 
 This Python script is a command-line tool designed to help you generate a blog article summarizing recent Git commits from one or more repositories, specifically filtering for commits made by your company. It supports both manual input and configuration via an INI file.
 
+## Dependencies
+
+This project relies on the following key libraries:
+
+* gitpython
+
+Use requirements.txt to install it if needed.
+
+```
+pip install -r requirements.txt
+
+```
+
 ## Features
 
 * **Real Git Operations**: Clones specified Git repositories and analyzes their commit history.
@@ -48,7 +61,6 @@ months_back = 12
 ## TODO
 
 - Able to avoid to clone everytime in tmp directory and check if the repo is already downloaded and just pull all the changes.
-- Move the API using gitPython
 - Use openai rest api to create a more consistent description of the work done in each project.
 - Group the changes by Author and by Topic using for the topic the AI and commit messages information.
 - Create a tool to post on social media like linkedin, X and facebook

@@ -1,10 +1,10 @@
 import os
 import shutil
 import datetime
-import subprocess
 import tempfile
 import configparser
 import argparse
+from git import Repo, GitCommandError
 
 
 def analyze_real_git_commits(
@@ -26,28 +26,10 @@ def analyze_real_git_commits(
     all_repo_commits_structured = []
 
     try:
-        # Check if Git command is available
-        try:
-            subprocess.run(
-                ["git", "--version"], check=True, capture_output=True, text=True
-            )
-        except FileNotFoundError:
-            return {
-                "error": "Git command not found. Please ensure Git is installed and in your system's PATH."
-            }
-        except subprocess.CalledProcessError as e:
-            return {"error": f"Error checking Git version: {e.stderr.decode().strip()}"}
-        except Exception as e:
-            return {
-                "error": f"An unexpected error occurred during Git version check: {str(e)}"
-            }
-
         temp_dir = tempfile.mkdtemp()
 
-        # Calculate the 'since' date for git log
-        since_date = (
-            datetime.datetime.now() - datetime.timedelta(days=months_back * 30)
-        ).strftime("%Y-%m-%d %H:%M:%S")
+        # Calculate the 'since' date for commit filtering
+        since_date = datetime.datetime.now() - datetime.timedelta(days=months_back * 30)
 
         for repo_url in repo_urls:
             repo_name = repo_url.split("/")[-1].replace(".git", "")
@@ -55,15 +37,11 @@ def analyze_real_git_commits(
 
             print(f"Cloning {repo_url} into {repo_path}...")
             try:
-                # Clone the repository
-                subprocess.run(
-                    ["git", "clone", "--quiet", repo_url, repo_path],
-                    check=True,
-                    capture_output=True,
-                )
+                # Clone the repository using GitPython
+                repo = Repo.clone_from(repo_url, repo_path)
                 print(f"Successfully cloned {repo_name}.")
-            except subprocess.CalledProcessError as e:
-                error_msg = e.stderr.decode().strip()
+            except GitCommandError as e:
+                error_msg = str(e)
                 print(f"Error cloning repository {repo_url}: {error_msg}")
                 all_repo_commits_structured.append(
                     {
@@ -88,55 +66,33 @@ def analyze_real_git_commits(
                 )
                 continue
 
-            print(f"Analyzing commits for {repo_name} since {since_date}...")
+            print(f"Analyzing commits for {repo_name} since {since_date.strftime('%Y-%m-%d %H:%M:%S')}...")
+            repo_commits_list = []
             try:
-                # Get commit logs, formatted for easy parsing
-                # --no-merges to exclude merge commits for cleaner summaries
-                git_log_command = [
-                    "git",
-                    "-C",
-                    repo_path,
-                    "log",
-                    f'--since="{since_date}"',
-                    "--pretty=format:%H%n%an%n%ae%n%ad%n%s%n---END-COMMIT---",
-                    "--date=iso",
-                ]
-                result = subprocess.run(
-                    git_log_command,
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8",
-                    errors="ignore",
-                )
-                commits_raw = result.stdout.strip().split("---END-COMMIT---")
+                # Iterate through commits
+                # We filter by `after` date to get commits since `since_date`
+                # and exclude merge commits by checking if the commit has more than one parent.
+                # GitPython's log method can also take `after` and `no_merges` arguments directly.
+                for commit in repo.iter_commits(since=since_date, no_merges=True):
+                    author_name = commit.author.name
+                    author_email = commit.author.email
+                    commit_date = datetime.datetime.fromtimestamp(commit.authored_date).isoformat()
+                    commit_message = commit.message.strip()
 
-                repo_commits_list = []
-                for commit_block in commits_raw:
-                    if not commit_block.strip():
-                        continue
-                    parts = commit_block.strip().split("\n")
-                    if len(parts) >= 5:
-                        commit_hash = parts[0]
-                        author_name = parts[1]
-                        author_email = parts[2]
-                        commit_date = parts[3]
-                        commit_message = "\n".join(parts[4:]).strip()
-
-                        # Filter by company identifier (case-insensitive)
-                        if (
-                            company_identifier.lower() in author_name.lower()
-                            or company_identifier.lower() in author_email.lower()
-                        ):
-                            repo_commits_list.append(
-                                {
-                                    "hash": commit_hash,
-                                    "author_name": author_name,
-                                    "author_email": author_email,
-                                    "date": commit_date,
-                                    "message": commit_message,
-                                }
-                            )
+                    # Filter by company identifier (case-insensitive)
+                    if (
+                        company_identifier.lower() in author_name.lower()
+                        or company_identifier.lower() in author_email.lower()
+                    ):
+                        repo_commits_list.append(
+                            {
+                                "hash": commit.hexsha,
+                                "author_name": author_name,
+                                "author_email": author_email,
+                                "date": commit_date,
+                                "message": commit_message,
+                            }
+                        )
 
                 all_repo_commits_structured.append(
                     {
@@ -146,8 +102,8 @@ def analyze_real_git_commits(
                     }
                 )
 
-            except subprocess.CalledProcessError as e:
-                error_msg = e.stderr.decode().strip()
+            except GitCommandError as e:
+                error_msg = str(e)
                 print(f"Error getting git log for {repo_name}: {error_msg}")
                 all_repo_commits_structured.append(
                     {

@@ -33,7 +33,6 @@ temp/
 # Output files
 # If the script saves the generated article, it might be named something like git_report.md
 *.md
-*.txt
 
 # Configuration files
 # It's good practice to ignore config files that might contain sensitive info or
