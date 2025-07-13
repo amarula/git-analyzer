@@ -3,6 +3,7 @@ import shutil
 import datetime
 import configparser
 import argparse
+from datetime import datetime, timedelta
 from git import Repo, InvalidGitRepositoryError, NoSuchPathError, GitCommandError
 
 def generate_commit_hyperlink(repo_path, base_web_url, commit_hash_prefix):
@@ -150,7 +151,7 @@ def analyze_real_git_commits(
         os.makedirs(deploy_target_dir, exist_ok=True)
 
         # Calculate the 'since' date for commit filtering
-        since_date = datetime.datetime.now() - datetime.timedelta(days=months_back * 30)
+        since_date = datetime.now() - timedelta(days=months_back * 30)
 
         for repo_url in repo_urls:
             repo_name = repo_url.split("/")[-1].replace(".git", "")
@@ -199,7 +200,7 @@ def analyze_real_git_commits(
                 for commit in repo.iter_commits(since=since_date, no_merges=True):
                     author_name = commit.author.name
                     author_email = commit.author.email
-                    commit_date = datetime.datetime.fromtimestamp(commit.authored_date).isoformat()
+                    commit_date = datetime.fromtimestamp(commit.authored_date).isoformat()
                     commit_message = commit.message.strip()
                     sha1_hash = commit.hexsha
 
@@ -276,8 +277,9 @@ def generate_article_content(commit_data: list[dict], months_back: int) -> str:
     if not commit_data:
         return "No relevant commits found to generate an article."
 
+    today = datetime.now()
     article_content = f"""
-# Recent Developments: A Look at Our Codebase ({months_back} Months Review)
+# Today {today.strftime('%Y-%m-%d')} Developments: A Look at Our Codebase ({months_back} Months Review)
 
 We're excited to share a summary of the significant progress made across our repositories in the last {months_back} months. Our dedicated team has been busy pushing new features, refining existing functionalities, and enhancing the overall stability of our products.
 
