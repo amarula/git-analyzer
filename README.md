@@ -58,6 +58,14 @@ company_identifier = @linux.com # Or a name like 'Linus Torvalds'
 months_back = 12
 ```
 
+### 3. Execute the tool
+
+The easy way to run it is to configure in a ini file and then run the tool.
+
+```python
+python git-analyzer.py -f amarula/config.ini -s report.md
+```
+
 ## TODO
 
 - Use openai rest api to create a more consistent description of the work done in each project.
