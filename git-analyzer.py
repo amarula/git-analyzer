@@ -153,16 +153,6 @@ def generate_article_content(commit_data: list[dict], months_back: int) -> str:
     if not commit_data:
         return "No relevant commits found to generate an article."
 
-    # This is where you would integrate with a real LLM API.
-    # For demonstration, we'll generate the article directly from the data.
-    # To use Gemini, you'd replace this section with a call to its API.
-    # Example (conceptual):
-    # from google.generativeai import GenerativeModel
-    # model = GenerativeModel(model_name="gemini-2.0-flash")
-    # prompt = f"Generate a blog article summarizing recent Git commits... Here is the data: {json.dumps(commit_data)}"
-    # response = model.generate_content(prompt)
-    # return response.text
-
     article_content = f"""
 # Recent Developments: A Look at Our Codebase ({months_back} Months Review)
 
