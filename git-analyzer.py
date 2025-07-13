@@ -4,8 +4,97 @@ import datetime
 import tempfile
 import configparser
 import argparse
-from git import Repo, GitCommandError
+import shutil
+from git import Repo, InvalidGitRepositoryError, NoSuchPathError, GitCommandError
 
+def git_pull_or_clone(remote_url=None, repo_path="."):
+    """
+    Checks if a directory is a Git repository.
+    If it is, performs a 'git pull'.
+    If 'git pull' fails, or if the directory is not a valid Git repository initially,
+    and a remote_url is provided, it attempts to clone (or re-clone) the repository
+    into the specified path.
+
+    Args:
+        remote_url (str, optional): The URL of the remote Git repository to clone.
+                                    Required if the directory is not a Git repo
+                                    or if a pull fails and a re-clone is desired.
+        repo_path (str): The path to the directory to check or clone into.
+                         Defaults to the current directory.
+    Returns:
+        repo: Return the repository if the clone is successfull otherwise None.
+    """
+    # Normalize the path to ensure consistency
+    abs_repo_path = os.path.abspath(repo_path)
+
+    # Helper function to perform cloning
+    def _perform_clone(url, path):
+        print(f"Attempting to clone repository from '{url}' into '{path}'...")
+        try:
+            # Ensure the parent directory exists before cloning
+            parent_dir = os.path.dirname(path)
+            if parent_dir and not os.path.exists(parent_dir):
+                os.makedirs(parent_dir)
+
+            repo = Repo.clone_from(url, path)
+            print(f"Repository successfully cloned into '{path}'.")
+            return repo
+        except GitCommandError as e:
+            print(f"Error during 'git clone': {e}")
+            print(f"Stdout: {e.stdout}")
+            print(f"Stderr: {e.stderr}")
+            return None
+        except Exception as e:
+            print(f"An unexpected error occurred during cloning: {e}")
+            return None
+
+    try:
+        # Attempt to open the directory as an existing Git repository
+        repo = Repo(abs_repo_path)
+
+        print(f"'{abs_repo_path}' appears to be an existing Git repository.")
+        print("Attempting to perform 'git pull' using GitPython...")
+
+        try:
+            # Perform git pull from the 'origin' remote
+            pull_info = repo.remotes.origin.pull()
+
+            print("Git pull successful:")
+            return Repo(abs_repo_path)
+        except GitCommandError as e:
+            print(f"Error during 'git pull': {e}")
+            print(f"Stdout: {e.stdout}")
+            print(f"Stderr: {e.stderr}")
+
+            if remote_url:
+                print(f"Git pull failed. Attempting to remove '{abs_repo_path}' and re-clone...")
+                # Remove the existing directory
+                if os.path.exists(abs_repo_path):
+                    try:
+                        shutil.rmtree(abs_repo_path)
+                        print(f"Removed existing directory '{abs_repo_path}'.")
+                    except OSError as remove_e:
+                        print(f"Error removing directory '{abs_repo_path}': {remove_e}")
+                        return None # Cannot proceed with re-clone if removal fails
+
+                # Now attempt to re-clone
+                return _perform_clone(remote_url, abs_repo_path)
+            else:
+                print("Git pull failed and no remote URL provided for re-cloning.")
+                return None # Operation was attempted, but failed without re-clone option
+
+    except (InvalidGitRepositoryError, NoSuchPathError):
+        # If it's not a valid Git repository or the path doesn't exist, try to clone
+        print(f"'{abs_repo_path}' is not a valid Git repository or does not exist.")
+        if remote_url:
+            return _perform_clone(remote_url, abs_repo_path)
+        else:
+            print("No remote URL provided to clone the repository.")
+            return None # No operation attempted
+
+    except Exception as e: # Catch any other unexpected errors at the top level
+        print(f"An unexpected error occurred: {e}")
+        return None # An operation was attempted, even if it failed
 
 def analyze_real_git_commits(
     repo_urls: list[str], company_identifier: str, months_back: int, deploy_dir_name: str
@@ -41,7 +130,7 @@ def analyze_real_git_commits(
 
             print(f"Cloning {repo_url} directly into {repo_path}...")
             try:
-                repo = Repo.clone_from(repo_url, repo_path)
+                repo = git_pull_or_clone(repo_url, repo_path)
                 print(f"Successfully cloned {repo_name}.")
 
             except GitCommandError as e:

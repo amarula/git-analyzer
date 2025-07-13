@@ -60,7 +60,6 @@ months_back = 12
 
 ## TODO
 
-- Able to avoid to clone everytime in tmp directory and check if the repo is already downloaded and just pull all the changes.
 - Use openai rest api to create a more consistent description of the work done in each project.
 - Group the changes by Author and by Topic using for the topic the AI and commit messages information.
 - Create a tool to post on social media like linkedin, X and facebook
