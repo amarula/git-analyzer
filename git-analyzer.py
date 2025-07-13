@@ -163,7 +163,7 @@ Here's a breakdown of key contributions by repository:
 """
 
     for repo in commit_data:
-        article_content += f"## {repo['repo_name']}\n"
+        article_content += f"## {repo['repo_name']}\n\n"
         article_content += f"Repository URL: {repo['repo_url']}\n\n"
 
         if "error" in repo:
