@@ -54,8 +54,7 @@ def git_pull_or_clone(remote_url=None, repo_path="."):
         print("Attempting to perform 'git pull' using GitPython...")
 
         try:
-            # Perform git pull from the 'origin' remote
-            pull_info = repo.remotes.origin.pull()
+            repo.remotes.origin.pull()
 
             print("Git pull successful:")
             return Repo(abs_repo_path)
@@ -77,18 +76,18 @@ def git_pull_or_clone(remote_url=None, repo_path="."):
 
                 # Now attempt to re-clone
                 return _perform_clone(remote_url, abs_repo_path)
-            else:
-                print("Git pull failed and no remote URL provided for re-cloning.")
-                return None # Operation was attempted, but failed without re-clone option
+
+            print("Git pull failed and no remote URL provided for re-cloning.")
+            return None # Operation was attempted, but failed without re-clone option
 
     except (InvalidGitRepositoryError, NoSuchPathError):
         # If it's not a valid Git repository or the path doesn't exist, try to clone
         print(f"'{abs_repo_path}' is not a valid Git repository or does not exist.")
         if remote_url:
             return _perform_clone(remote_url, abs_repo_path)
-        else:
-            print("No remote URL provided to clone the repository.")
-            return None # No operation attempted
+
+        print("No remote URL provided to clone the repository.")
+        return None # No operation attempted
 
     except Exception as e: # Catch any other unexpected errors at the top level
         print(f"An unexpected error occurred: {e}")
