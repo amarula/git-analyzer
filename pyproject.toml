@@ -15,6 +15,9 @@ license = { file = "LICENSE" } # You might want to add a LICENSE file
 [project.scripts]
 git-analyzer = "main:main"
 
+[project.urls]
+homepage = "https://github.com/amarula/git-analyzer"
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
