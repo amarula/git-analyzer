@@ -54,7 +54,7 @@ def git_pull_or_clone(remote_url=None, repo_path="."):
 
         try:
             # Perform git pull from the 'origin' remote
-            pull_info = repo.remotes.origin.pull()
+            repo.remotes.origin.pull()
 
             print("Git pull successful:")
             return Repo(abs_repo_path)
