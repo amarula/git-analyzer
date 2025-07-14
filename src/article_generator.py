@@ -1,3 +1,6 @@
+import datetime
+from datetime import datetime
+
 def generate_article_content(commit_data: list[dict], months_back: int) -> str:
     """
     Generates a blog article based on commit data.
@@ -13,8 +16,9 @@ def generate_article_content(commit_data: list[dict], months_back: int) -> str:
     if not commit_data:
         return "No relevant commits found to generate an article."
 
+    today = datetime.now()
     article_content = f"""
-# Recent Developments: A Look at Our Codebase ({months_back} Months Review)
+# Today {today.strftime('%Y-%m-%d')} Developments: A Look at Our Codebase ({months_back} Months Review)
 
 We're excited to share a summary of the significant progress made across our repositories in the last {months_back} months. Our dedicated team has been busy pushing new features, refining existing functionalities, and enhancing the overall stability of our products.
 

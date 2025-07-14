@@ -1,6 +1,7 @@
 import os
 import shutil
 import datetime
+from datetime import datetime, timedelta
 from git import Repo, InvalidGitRepositoryError, NoSuchPathError, GitCommandError
 
 
@@ -103,7 +104,8 @@ def analyze_real_git_commits(
 
     Args:
         repo_urls: A list of Git repository URLs.
-        company_identifier: A string to identify company commits (e.g., email domain or part of the committer name).
+        company_identifier: A string to identify company commits (e.g., email domain or part
+                            of the committer name).
         months_back: An integer representing the number of months to look back for commits.
         deploy_dir_name: The name of the directory where repositories will be cloned.
 
@@ -120,7 +122,7 @@ def analyze_real_git_commits(
         os.makedirs(deploy_target_dir, exist_ok=True)
 
         # Calculate the 'since' date for commit filtering
-        since_date = datetime.datetime.now() - datetime.timedelta(days=months_back * 30)
+        since_date = datetime.now() - timedelta(days=months_back * 30)
 
         for repo_url in repo_urls:
             repo_name = repo_url.split("/")[-1].replace(".git", "")
@@ -167,7 +169,7 @@ def analyze_real_git_commits(
                 for commit in repo.iter_commits(since=since_date, no_merges=True):
                     author_name = commit.author.name
                     author_email = commit.author.email
-                    commit_date = datetime.datetime.fromtimestamp(commit.authored_date).isoformat()
+                    commit_date = datetime.fromtimestamp(commit.authored_date).isoformat()
                     commit_message = commit.message.strip()
 
                     # Filter by company identifier (case-insensitive)
