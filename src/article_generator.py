@@ -23,27 +23,25 @@ Here's a breakdown of key contributions by repository:
 """
 
     for repo in commit_data:
+
+        if "error" in repo or not repo["commits"]:
+            continue
+
         article_content += f"## {repo['repo_name']}\n\n"
         article_content += f"Repository URL: {repo['repo_url']}\n\n"
 
-        if "error" in repo:
-            article_content += (
-                f"**Error processing this repository:** {repo['error']}\n\n"
+        article_content += "Our team has made the following notable commits:\n\n"
+        for commit in repo["commits"]:
+            # Ensure the message is handled, even if it's empty or malformed
+            first_line_message = (
+                commit["message"].split("\n")[0]
+                if commit["message"]
+                else "(No message)"
             )
-        elif repo["commits"]:
-            article_content += "Our team has made the following notable commits:\n\n"
-            for commit in repo["commits"]:
-                # Ensure the message is handled, even if it's empty or malformed
-                first_line_message = (
-                    commit["message"].split("\n")[0]
-                    if commit["message"]
-                    else "(No message)"
-                )
-                first_line_message = first_line_message.replace("_", r"\_")
-                article_content += f"- **{commit['author_name']}** on {commit['date'].split('T')[0]}: {first_line_message}\n"
-            article_content += "\n"
-        else:
-            article_content += f"No company-specific commits were identified in this repository during the last {months_back} months.\n\n"
+            first_line_message = first_line_message.replace("_", r"\_")
+            article_content += f"- **{commit['author_name']}** on {commit['date'].split('T')[0]}: {first_line_message}\n"
+
+        article_content += "\n"
 
     article_content += """
 This overview highlights the continuous effort and innovation from our development team. We look forward to bringing even more exciting updates in the future!
