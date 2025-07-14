@@ -2,6 +2,23 @@
 
 This Python script is a command-line tool designed to help you generate a blog article summarizing recent Git commits from one or more repositories, specifically filtering for commits made by your company. It supports both manual input and configuration via an INI file.
 
+## Project Structure
+
+```bash
+git-analyzer/
+├── amarula/                # Examples of configuration file from our organization
+├── src/
+│   ├── __init__.py         # Makes 'src' a Python package
+│   ├── git_utils.py        # Contains functions for Git operations (clone, pull, analyze commits)
+│   ├── article_generator.py # Contains logic for generating the article content
+│   ├── config_parser.py    # Handles loading configuration from INI files
+├── main.py                 # The main entry point of the application
+├── pyproject.toml          # Project metadata and dependencies (modern Python packaging)
+├── requirements.txt        # List of direct Python dependencies
+├── README.md               # This file
+├── .gitignore              # Specifies intentionally untracked files to ignore
+```
+
 ## Dependencies
 
 This project relies on the following key libraries:
@@ -63,7 +80,7 @@ months_back = 12
 The easy way to run it is to configure in a ini file and then run the tool.
 
 ```python
-python git-analyzer.py -f amarula/config.ini -s report.md
+python main.py -f amarula/config.ini -s report.md
 ```
 
 ## TODO
