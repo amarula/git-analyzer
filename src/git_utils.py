@@ -159,7 +159,8 @@ def analyze_real_git_commits(
                 )
                 continue
 
-            print(f"Analyzing commits for {repo_name} since {since_date.strftime('%Y-%m-%d %H:%M:%S')}...")
+            print(f"Analyzing commits for {repo_name} since "
+                  f"{since_date.strftime('%Y-%m-%d %H:%M:%S')}...")
             repo_commits_list = []
             try:
                 # Iterate through commits
