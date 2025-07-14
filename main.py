@@ -77,7 +77,8 @@ def main():
             print(f"Configuration loaded from {args.config_file}.")
         else:
             print(
-                f"Warning: Failed to load configuration from {args.config_file}. Proceeding with command-line arguments or prompts."
+                f"Warning: Failed to load configuration from {args.config_file}."
+                " Proceeding with command-line arguments or prompts."
             )
 
     # If config file was NOT successfully loaded, or not provided, then use CLI args
@@ -104,7 +105,8 @@ def main():
 
     if not repo_urls:
         repo_urls_input = input(
-            "Enter Git repository URLs (comma-separated, e.g., https://github.com/org/repo1.git,https://github.com/org/repo2.git): "
+            "Enter Git repository URLs (comma-separated, e.g.,"
+            "https://github.com/org/repo1.git,https://github.com/org/repo2.git): "
         ).strip()
         repo_urls = [url.strip() for url in repo_urls_input.split(",") if url.strip()]
 
