@@ -1,5 +1,4 @@
 import argparse
-import os
 
 # Import functions from the new modules
 from src.git_utils import analyze_real_git_commits
@@ -36,7 +35,8 @@ def main():
     parser.add_argument(
         "-f",
         "--config-file",
-        help="Path to an INI configuration file. If provided and successfully loaded, it will override other core parameters (-r, -c, -m).",
+        help="Path to an INI configuration file. If provided and successfully loaded, "
+             "it will override other core parameters (-r, -c, -m).",
         type=str,
     )
     parser.add_argument(
@@ -179,4 +179,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
