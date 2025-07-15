@@ -1,4 +1,5 @@
 import datetime
+from src.git_utils import generate_commit_hyperlink
 from datetime import datetime
 
 def generate_article_content(commit_data: list[dict], months_back: int) -> str:
@@ -43,7 +44,8 @@ Here's a breakdown of key contributions by repository:
                 else "(No message)"
             )
             first_line_message = first_line_message.replace("_", r"\_")
-            article_content += f"- **{commit['author_name']}** on {commit['date'].split('T')[0]}: {first_line_message}\n"
+            hyperlink = generate_commit_hyperlink(repo['repo_path'], repo['repo_url'], commit['sha1'])
+            article_content += f"- **{commit['author_name']}** on {commit['date'].split('T')[0]}: [{first_line_message}]({hyperlink})\n"
 
         article_content += "\n"
 
