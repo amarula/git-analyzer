@@ -45,7 +45,7 @@ def generate_commit_hyperlink(repo_path, base_web_url, commit_hash_prefix):
                 commit_url = f"{base_web_url}/commit/?id={commit_full_hash}"
                 break
 
-        if commit_url is None
+        if commit_url is None:
             if base_web_url.endswith(".git"):
                 base_web_url = base_web_url[:-4]
             commit_url = f"{base_web_url}/commit/{commit_full_hash}"
