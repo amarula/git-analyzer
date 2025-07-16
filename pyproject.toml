@@ -5,9 +5,9 @@ description = "A tool to analyze Git commits and generate articles."
 authors = [
     { name = "Michael Trimarchi", email = "michael@amarulasolutions.com" },
 ]
-dependencies = [
-    "GitPython==3.1.43", # Specify the version used in the original script
-]
+
+dependencies = {file = ["requirements.txt"]}
+
 readme = "README.md"
 requires-python = ">=3.8"
 license = { file = "LICENSE" } # You might want to add a LICENSE file
