@@ -1,3 +1,13 @@
+"""
+Git Utilities
+
+This module provides essential functions for Git repository management. It allows
+users to extract metadata and history from Git repositories, as well as perform
+fundamental operations like cloning new repositories and pulling updates to
+existing ones.
+
+"""
+
 import os
 import shutil
 import datetime
