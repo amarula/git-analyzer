@@ -10,6 +10,7 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 *.egg-info/
 .pytest_cache/
 .mypy_cache/
@@ -22,6 +23,9 @@ venv/
 *.swo
 *.sublime-project
 *.sublime-workspace
+
+# Default folder containing git repositories
+deploy/
 
 # Temporary files created by the script
 # The script uses tempfile.mkdtemp() which creates directories like /tmp/tmpXXXXXX
