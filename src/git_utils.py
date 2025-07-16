@@ -34,10 +34,18 @@ def generate_commit_hyperlink(repo_path, base_web_url, commit_hash_prefix):
 
         commit_full_hash = commit.hexsha
         commit_message = commit.summary
+        special_cases_prefixes = [
+            "https://git.kernel.org",
+            "https://git.openembedded.org"
+        ]
 
-        if base_web_url.startswith("https://git.kernel.org"):
-            commit_url = f"{base_web_url}/commit/?id={commit_full_hash}"
-        else:
+        commit_url = None
+        for prefix in special_cases_prefixes:
+            if base_web_url.startswith(prefix):
+                commit_url = f"{base_web_url}/commit/?id={commit_full_hash}"
+                break
+
+        if commit_url is None
             if base_web_url.endswith(".git"):
                 base_web_url = base_web_url[:-4]
             commit_url = f"{base_web_url}/commit/{commit_full_hash}"
