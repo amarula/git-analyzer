@@ -36,7 +36,9 @@ Here's a breakdown of key contributions by repository:
         article_content += f"Repository URL: {repo['repo_url']}\n\n"
 
         article_content += "Our team has made the following notable commits:\n\n"
-        for commit in repo["commits"]:
+        # Sort the commit by Author Name and then by date
+        data = sorted(repo["commits"], key=lambda x: (x['author_name'], x['date']))
+        for commit in data:
             # Ensure the message is handled, even if it's empty or malformed
             first_line_message = (
                 commit["message"].split("\n")[0]

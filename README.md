@@ -86,6 +86,6 @@ python main.py -f amarula/config.ini -s report.md
 ## TODO
 
 - Use openai rest api to create a more consistent description of the work done in each project.
-- Group the changes by Author and by Topic using for the topic the AI and commit messages information.
+- Generate description using the AI and commit messages information.
 - Create a tool to post on social media like linkedin, X and facebook
 - Add all amarula opensource projects
