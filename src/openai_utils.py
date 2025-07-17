@@ -8,14 +8,16 @@ contributions based on their Git commit messages using the OpenAI API.
 
 import openai
 
-def summarize_commit_messages(commit_messages_string: str, api_key: str, n_months: int) -> str:
+def summarize_commit_messages(api_key: str, commit_messages_string: str,
+                              n_months: int, author_name: str) -> str:
     """
     Summarizes a string of commit messages using OpenAI's API.
 
     Args:
-        commit_messages_string (str): A string containing all commit messages from an author.
         api_key (str): Your OpenAI API key.
+        commit_messages_string (str): A string containing all commit messages from an author.
         n_months (int): The period in months for which the commits were made.
+        author_name (str): The author of commit message.
 
     Returns:
         str: A summary of the author's contributions based on the commit messages.
@@ -24,10 +26,11 @@ def summarize_commit_messages(commit_messages_string: str, api_key: str, n_month
 
     # Craft a clear and concise prompt for OpenAI
     prompt = (
-        f"Summarize the following software development contributions from an author "
-        f"over a period of {n_months} months based on their commit messages. "
+        f"Summarize the following software development contributions from an author which name is {author_name}"
+        f"over a period of {n_months} months based on his or her commit messages. "
         f"Focus on key features, bug fixes, improvements, and overall progress. "
-        f"Provide a concise yet comprehensive overview.\n\n"
+        f"Provide a concise yet comprehensive overview. Maximum 3 sentences per commit."
+        f"Some commits include the change log, so it means that is not the commit itself\n\n"
         f"Commit Messages:\n---\n{commit_messages_string}\n---"
     )
 
