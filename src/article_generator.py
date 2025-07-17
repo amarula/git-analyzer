@@ -25,7 +25,9 @@ def generate_article_content(commit_data: list[dict], months_back: int, openai_k
     article_content = f"""
 # Today {today.strftime('%Y-%m-%d')} Developments: A Look at Our Codebase ({months_back} Months Review)
 
-We're excited to share a summary of the significant progress made across our repositories in the last {months_back} months. Our dedicated team has been busy pushing new features, refining existing functionalities, and enhancing the overall stability of our products.
+We're excited to share a summary of the significant progress made across our repositories
+in the last {months_back} months. Our dedicated team has been busy pushing new features,
+refining existing functionalities, and enhancing the overall stability of our products.
 
 Here's a breakdown of key contributions by repository:
 
