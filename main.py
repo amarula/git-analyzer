@@ -158,7 +158,7 @@ def main():
 
     commit_data = analysis_result.get("commit_data", [])
 
-    article = generate_article_content(commit_data, months_back)
+    article = generate_article_content(commit_data, months_back, openai_key)
 
     print("\n--- Generated Article ---")
     print(article)

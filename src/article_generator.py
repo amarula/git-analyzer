@@ -1,8 +1,12 @@
 import datetime
 from src.git_utils import generate_commit_hyperlink
 from datetime import datetime
+from collections import defaultdict
+import textwrap
+from src.openai_utils import summarize_commit_messages
+import os
 
-def generate_article_content(commit_data: list[dict], months_back: int) -> str:
+def generate_article_content(commit_data: list[dict], months_back: int, openai_key: str) -> str:
     """
     Generates a blog article based on commit data.
     In a real tool, this would call a large language model API (e.g., Gemini).
@@ -35,22 +39,35 @@ Here's a breakdown of key contributions by repository:
         article_content += f"## {repo['repo_name']}\n\n"
         article_content += f"Repository URL: {repo['repo_url']}\n\n"
 
-        article_content += "Our team has made the following notable commits:\n\n"
-        # Sort the commit by Author Name and then by date
-        data = sorted(repo["commits"], key=lambda x: (x['author_name'], x['date']))
-        for commit in data:
-            # Ensure the message is handled, even if it's empty or malformed
-            first_line_message = (
-                commit["message"].split("\n")[0]
-                if commit["message"]
-                else "(No message)"
-            )
-            first_line_message = first_line_message.replace("_", r"\_")
-            hyperlink = generate_commit_hyperlink(repo['repo_path'], repo['repo_url'], commit['sha1'])
-            article_content += f"- **{commit['author_name']}** on {commit['date'].split('T')[0]}: [{first_line_message}]({hyperlink})\n"
+        commits_by_author = defaultdict(list)
+        for commit in repo["commits"]:
+            commits_by_author[commit['author_name']].append(commit)
 
-        article_content += "\n"
+        if not commits_by_author:
+            continue
 
+        for author_name, author_commits in sorted(commits_by_author.items()):
+            all_author_messages = "\n".join([commit["message"] if commit["message"] else "(No message)"])
+
+            if openai_key:
+                ai_summary = summarize_commit_messages(openai_key, all_author_messages,
+                                                       months_back, author_name)
+                article_content += "\n"
+                if ai_summary:
+                    article_content += "### Summary of the contributions by author:\n\n"
+                    wrapped_summary = textwrap.fill(ai_summary, width=100)
+                    article_content += f"**{author_name}**: {wrapped_summary}\n\n"
+
+            article_content += f"#### Here the commits of **{author_name}** in detail:\n\n"
+            # Sort the commit by Author Name and then by date
+            data = sorted(author_commits, key=lambda x: (x['author_name'], x['date']))
+            for commit in data:
+                # Ensure the message is handled, even if it's empty or malformed
+                first_line_message = (commit["message"].split("\n")[0] if commit["message"] else "(No message)")
+                first_line_message = first_line_message.replace("_", r"\_")
+                hyperlink = generate_commit_hyperlink(repo['repo_path'], repo['repo_url'], commit['sha1'])
+                article_content += f"- **{commit['author_name']}** on {commit['date'].split('T')[0]}: [{first_line_message}]({hyperlink})\n"
+            article_content += "\n"
     article_content += """
 This overview highlights the continuous effort and innovation from our development team. We look forward to bringing even more exciting updates in the future!
 
