@@ -81,7 +81,7 @@ def main():
             company_identifier = config_data.get("company_identifier", "")
             months_back = config_data.get("months_back", None)
             deploy_dir = config_data.get("deploy_dir", None)
-            openai_apikey = config_data.get("openai_apikey", None)
+            openai_key = config_data.get("openai_apikey", None)
 
             config_loaded_successfully = True
             print(f"Configuration loaded from {args.config_file}.")
