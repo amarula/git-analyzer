@@ -1,10 +1,10 @@
 import datetime
-from src.git_utils import generate_commit_hyperlink
-from datetime import datetime
-from collections import defaultdict
-import textwrap
-from src.openai_utils import summarize_commit_messages
 import os
+import textwrap
+from collections import defaultdict
+from datetime import datetime
+from src.git_utils import generate_commit_hyperlink
+from src.openai_utils import summarize_commit_messages
 
 def generate_article_content(commit_data: list[dict], months_back: int, openai_key: str) -> str:
     """
