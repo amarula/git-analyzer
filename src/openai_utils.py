@@ -26,12 +26,15 @@ def summarize_commit_messages(api_key: str, commit_messages_string: str,
 
     # Craft a clear and concise prompt for OpenAI
     prompt = (
-        f"Summarize the following software development contributions from an author which name is {author_name}"
-        f"over a period of {n_months} months based on his or her commit messages.\n"
-        f"- Don\'t change the author name that must be {author_name}\n"
-        '- Focus on key features, bug fixes, improvements, and overall progress.\n'
-        '- Provide a concise yet comprehensive overview. Maximum 3 sentences per commit.\n'
-        '- Some commits include the change log, so it means that is not the commit itself\n\n'
+        f"Summarize the following software development contributions from an author named {author_name},"
+        f"over a period of {n_months} months, based on commit messages.\n"
+        f"- Don\'t change the author name that must be {author_name}."
+        f"- Do not use gendered pronouns (like he, she, or they) always refer to the author with {author_name};\n"
+        "- Focus on key features, bug fixes, improvements, and overall progress.\n"
+        "- Some entries may be changelogs, not commits. If it looks like a changelog,"
+        " summarize the overall changes, not individual items.\n"
+        "- Provide a concise yet comprehensive overview. Maximum 8 sentences. \n\n"
+        "- Important: Use no pronouns. Do not use “they”"
         f"Commit Messages:\n---\n{commit_messages_string}\n---"
     )
 
