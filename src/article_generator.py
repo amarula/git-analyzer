@@ -49,6 +49,8 @@ Here's a breakdown of key contributions by repository:
         if not commits_by_author:
             continue
 
+        article_content += "### Summary of the contributions by author:\n\n"
+
         for author_name, author_commits in sorted(commits_by_author.items()):
             all_author_messages = "\n".join([
                     commit["message"] if commit["message"] else "(No message provided)"
@@ -61,7 +63,6 @@ Here's a breakdown of key contributions by repository:
                 ai_summary = md.esc_format(ai_summary, esc=True)
                 article_content += "\n"
                 if ai_summary:
-                    article_content += "### Summary of the contributions by author:\n\n"
                     wrapped_summary = textwrap.fill(ai_summary, width=100)
                     article_content += f"**{author_name}**: {wrapped_summary}\n\n"
 
