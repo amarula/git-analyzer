@@ -1,6 +1,7 @@
 import datetime
 import os
 import textwrap
+import markdown_strings as md
 from collections import defaultdict
 from datetime import datetime
 from src.git_utils import generate_commit_hyperlink
@@ -54,6 +55,7 @@ Here's a breakdown of key contributions by repository:
             if openai_key:
                 ai_summary = summarize_commit_messages(openai_key, all_author_messages,
                                                        months_back, author_name)
+                ai_summary = md.esc_format(ai_summary, esc=True)
                 article_content += "\n"
                 if ai_summary:
                     article_content += "### Summary of the contributions by author:\n\n"
