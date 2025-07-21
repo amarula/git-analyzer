@@ -9,7 +9,7 @@ contributions based on their Git commit messages using the OpenAI API.
 import openai
 
 def summarize_commit_messages(api_key: str, commit_messages_string: str,
-                              n_months: int, author_name: str) -> str:
+                              n_months: int, author_name: str, openai_model: str) -> str:
     """
     Summarizes a string of commit messages using OpenAI's API.
 
@@ -40,7 +40,7 @@ def summarize_commit_messages(api_key: str, commit_messages_string: str,
 
     try:
         response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",  # Or "gpt-4" for potentially better results
+            model=openai_model,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that summarizes software development contributions."},
                 {"role": "user", "content": prompt}

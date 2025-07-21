@@ -7,7 +7,7 @@ from datetime import datetime
 from src.git_utils import generate_commit_hyperlink
 from src.openai_utils import summarize_commit_messages
 
-def generate_article_content(commit_data: list[dict], months_back: int, openai_key: str) -> str:
+def generate_article_content(commit_data: list[dict], months_back: int, openai_key: str, openai_model: str) -> str:
     """
     Generates a blog article based on commit data.
     In a real tool, this would call a large language model API (e.g., Gemini).
@@ -59,7 +59,7 @@ Here's a breakdown of key contributions by repository:
 
             if openai_key:
                 ai_summary = summarize_commit_messages(openai_key, all_author_messages,
-                                                       months_back, author_name)
+                                                       months_back, author_name, openai_model)
                 ai_summary = md.esc_format(ai_summary, esc=True)
                 article_content += "\n"
                 if ai_summary:

@@ -82,6 +82,7 @@ def main():
             months_back = config_data.get("months_back", None)
             deploy_dir = config_data.get("deploy_dir", None)
             openai_key = config_data.get("openai_apikey", None)
+            openai_model = config_data.get("openai_model", None)
 
             config_loaded_successfully = True
             print(f"Configuration loaded from {args.config_file}.")
@@ -105,6 +106,8 @@ def main():
             deploy_dir = args.deploy_dir
         if args.openai_key:
             openai_key = args.openai_key
+        if args.openai_model:
+            openai_model = args.openai_model
 
     if args.deploy_dir:
         deploy_dir = args.deploy_dir
@@ -147,6 +150,9 @@ def main():
             except ValueError:
                 print("Invalid input. Please enter a positive integer for months.")
 
+    if openai_key and not openai_model:
+        openai_model = "gpt-3.5-turbo"
+
     print("\nStarting real Git analysis...")
     analysis_result = analyze_real_git_commits(
         repo_urls, company_identifier, months_back, deploy_dir
@@ -158,7 +164,7 @@ def main():
 
     commit_data = analysis_result.get("commit_data", [])
 
-    article = generate_article_content(commit_data, months_back, openai_key)
+    article = generate_article_content(commit_data, months_back, openai_key, openai_model)
 
     print("\n--- Generated Article ---")
     print(article)
