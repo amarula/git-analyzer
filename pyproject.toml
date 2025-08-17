@@ -6,7 +6,11 @@ authors = [
     { name = "Michael Trimarchi", email = "michael@amarulasolutions.com" },
 ]
 
-dependencies = {file = ["requirements.txt"]}
+dependencies = [
+    "GitPython==3.1.44",
+    "markdown_strings==v3.4.0",
+    "openai==1.96.1",
+]
 
 readme = "README.md"
 requires-python = ">=3.8"
