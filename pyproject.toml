@@ -1,5 +1,5 @@
 [project]
-name = "git-analyzer"
+name = "GitScribeAI"
 version = "0.1.0"
 description = "A tool to analyze Git commits and generate articles."
 authors = [
