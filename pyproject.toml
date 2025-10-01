@@ -9,7 +9,7 @@ authors = [
 dependencies = [
     "GitPython==3.1.44",
     "markdown_strings==v3.4.0",
-    "openai==1.96.1",
+    "langchain-openai==0.3.34",
 ]
 
 readme = "README.md"

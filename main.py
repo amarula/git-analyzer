@@ -56,8 +56,8 @@ def main():
     )
     parser.add_argument(
         "-k",
-        "--openai-key",
-        help="Pass the openai key for create commit summary by Author and repo.",
+        "--ai-key",
+        help="Pass the ai key for create commit summary by Author and repo.",
         type=str,
         default=None,
     )
@@ -69,7 +69,7 @@ def main():
     months_back = None
     save_file_name = None
     deploy_dir = None
-    openai_key = None
+    ai_key = None
 
     config_loaded_successfully = False
 
@@ -81,8 +81,8 @@ def main():
             company_identifier = config_data.get("company_identifier", "")
             months_back = config_data.get("months_back", None)
             deploy_dir = config_data.get("deploy_dir", None)
-            openai_key = config_data.get("openai_apikey", None)
-            openai_model = config_data.get("openai_model", None)
+            ai_key = config_data.get("ai_apikey", None)
+            ai_model = config_data.get("ai_model", None)
 
             config_loaded_successfully = True
             print(f"Configuration loaded from {args.config_file}.")
@@ -104,10 +104,10 @@ def main():
             months_back = args.months_back
         if args.deploy_dir:
             deploy_dir = args.deploy_dir
-        if args.openai_key:
-            openai_key = args.openai_key
-        if args.openai_model:
-            openai_model = args.openai_model
+        if args.ai_key:
+            ai_key = args.ai_key
+        if args.ai_model:
+            ai_model = args.ai_model
 
     if args.deploy_dir:
         deploy_dir = args.deploy_dir
@@ -150,8 +150,8 @@ def main():
             except ValueError:
                 print("Invalid input. Please enter a positive integer for months.")
 
-    if openai_key and not openai_model:
-        openai_model = "gpt-3.5-turbo"
+    if ai_key and not ai_model:
+        ai_model = "gpt-3.5-turbo"
 
     print("\nStarting real Git analysis...")
     analysis_result = analyze_real_git_commits(
@@ -164,7 +164,7 @@ def main():
 
     commit_data = analysis_result.get("commit_data", [])
 
-    article = generate_article_content(commit_data, months_back, openai_key, openai_model)
+    article = generate_article_content(commit_data, months_back, ai_key, ai_model)
 
     print("\n--- Generated Article ---")
     print(article)
