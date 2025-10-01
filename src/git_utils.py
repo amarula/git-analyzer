@@ -1,5 +1,4 @@
-"""
-Git Utilities
+"""Git Utilities
 
 This module provides essential functions for Git repository management. It allows
 users to extract metadata and history from Git repositories, as well as perform
@@ -8,16 +7,16 @@ existing ones.
 
 """
 
+import datetime
 import os
 import shutil
-import datetime
 from datetime import datetime, timedelta
-from git import Repo, InvalidGitRepositoryError, NoSuchPathError, GitCommandError
+
+from git import GitCommandError, InvalidGitRepositoryError, NoSuchPathError, Repo
 
 
 def generate_commit_hyperlink(repo_path, base_web_url, commit_hash_prefix):
-    """
-    Generates an hyperlink to a Git commit on a web platform.
+    """Generates an hyperlink to a Git commit on a web platform.
 
     Args:
         repo_path (str): The path to the local Git repository.
@@ -27,6 +26,7 @@ def generate_commit_hyperlink(repo_path, base_web_url, commit_hash_prefix):
 
     Returns:
         str: The hyperlink string, or None if the commit is not found.
+
     """
     try:
         repo = Repo(repo_path)
@@ -36,7 +36,7 @@ def generate_commit_hyperlink(repo_path, base_web_url, commit_hash_prefix):
         commit_message = commit.summary
         special_cases_prefixes = [
             "https://git.kernel.org",
-            "https://git.openembedded.org"
+            "https://git.openembedded.org",
         ]
 
         commit_url = None
@@ -50,7 +50,7 @@ def generate_commit_hyperlink(repo_path, base_web_url, commit_hash_prefix):
                 base_web_url = base_web_url[:-4]
             commit_url = f"{base_web_url}/commit/{commit_full_hash}"
 
-        hyperlink = f'{commit_url}'
+        hyperlink = f"{commit_url}"
         return hyperlink
 
     except Exception as e:
@@ -59,8 +59,7 @@ def generate_commit_hyperlink(repo_path, base_web_url, commit_hash_prefix):
 
 
 def git_pull_or_clone(remote_url=None, repo_path="."):
-    """
-    Checks if a directory is a Git repository.
+    """Checks if a directory is a Git repository.
     If it is, performs a 'git pull'.
     If 'git pull' fails, or if the directory is not a valid Git repository initially,
     and a remote_url is provided, it attempts to clone (or re-clone) the repository
@@ -72,8 +71,10 @@ def git_pull_or_clone(remote_url=None, repo_path="."):
                                     or if a pull fails and a re-clone is desired.
         repo_path (str): The path to the directory to check or clone into.
                          Defaults to the current directory.
+
     Returns:
         repo: Return the repository if the clone is successfull otherwise None.
+
     """
     # Normalize the path to ensure consistency
     abs_repo_path = os.path.abspath(repo_path)
@@ -149,10 +150,9 @@ def git_pull_or_clone(remote_url=None, repo_path="."):
 
 
 def analyze_real_git_commits(
-    repo_urls: list[str], company_identifier: str, months_back: int, deploy_dir_name: str
+    repo_urls: list[str], company_identifier: str, months_back: int, deploy_dir_name: str,
 ) -> dict:
-    """
-    Clones Git repositories, finds commits by a specified company within a timeframe,
+    """Clones Git repositories, finds commits by a specified company within a timeframe,
     and returns structured commit data.
 
     Args:
@@ -164,6 +164,7 @@ def analyze_real_git_commits(
 
     Returns:
         A dictionary containing the structured commit data or an error message.
+
     """
     all_repo_commits_structured = []
 
@@ -196,21 +197,21 @@ def analyze_real_git_commits(
                         "repo_path": repo_path,
                         "error": f"Failed to clone: {error_msg}",
                         "commits": [],  # No commits if clone failed
-                    }
+                    },
                 )
                 continue  # Skip to next repository
             except Exception as e:
                 print(
-                    f"An unexpected error occurred during cloning {repo_url}: {str(e)}"
+                    f"An unexpected error occurred during cloning {repo_url}: {e!s}",
                 )
                 all_repo_commits_structured.append(
                     {
                         "repo_name": repo_name,
                         "repo_url": repo_url,
                         "repo_path": repo_path,
-                        "error": f"An unexpected error occurred during cloning: {str(e)}",
+                        "error": f"An unexpected error occurred during cloning: {e!s}",
                         "commits": [],
-                    }
+                    },
                 )
                 continue
 
@@ -242,7 +243,7 @@ def analyze_real_git_commits(
                                 "date": commit_date,
                                 "message": commit_message,
                                 "sha1": sha1_hash,
-                            }
+                            },
                         )
 
                 all_repo_commits_structured.append(
@@ -251,7 +252,7 @@ def analyze_real_git_commits(
                         "repo_url": repo_url,
                         "repo_path": repo_path,
                         "commits": repo_commits_list,
-                    }
+                    },
                 )
 
             except GitCommandError as e:
@@ -264,7 +265,7 @@ def analyze_real_git_commits(
                         "repo_path": repo_path,
                         "error": f"Failed to get commit log: {error_msg}",
                         "commits": [],
-                    }
+                    },
                 )
             except Exception as e:
                 print(f"Error processing commits for {repo_name}: {e}")
@@ -273,9 +274,9 @@ def analyze_real_git_commits(
                         "repo_name": repo_name,
                         "repo_url": repo_url,
                         "repo_path": repo_path,
-                        "error": f"Error processing commits: {str(e)}",
+                        "error": f"Error processing commits: {e!s}",
                         "commits": [],
-                    }
+                    },
                 )
 
         return {
@@ -285,4 +286,4 @@ def analyze_real_git_commits(
 
     except Exception as e:
         print(f"An unexpected error occurred in analyze_real_git_commits: {e}")
-        return {"error": f"An unexpected error occurred: {str(e)}"}
+        return {"error": f"An unexpected error occurred: {e!s}"}

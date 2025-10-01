@@ -1,18 +1,18 @@
 import argparse
 
-# Import functions from the new modules
-from src.git_utils import analyze_real_git_commits
 from src.article_generator import generate_article_content
 from src.config_parser import load_config_from_ini
 
+# Import functions from the new modules
+from src.git_utils import analyze_real_git_commits
+
 
 def main():
-    """
-    Main function to run the Git commit analysis and article generation tool.
+    """Main function to run the Git commit analysis and article generation tool.
     Supports optional configuration from an INI file and command-line arguments.
     """
     parser = argparse.ArgumentParser(
-        description="Generate a blog article summarizing Git commits from repositories."
+        description="Generate a blog article summarizing Git commits from repositories.",
     )
     parser.add_argument(
         "-r",
@@ -89,7 +89,7 @@ def main():
         else:
             print(
                 f"Warning: Failed to load configuration from {args.config_file}."
-                " Proceeding with command-line arguments or prompts."
+                " Proceeding with command-line arguments or prompts.",
             )
 
     # If config file was NOT successfully loaded, or not provided, then use CLI args
@@ -121,7 +121,7 @@ def main():
     if not repo_urls:
         repo_urls_input = input(
             "Enter Git repository URLs (comma-separated, e.g.,"
-            "https://github.com/org/repo1.git,https://github.com/org/repo2.git): "
+            "https://github.com/org/repo1.git,https://github.com/org/repo2.git): ",
         ).strip()
         repo_urls = [url.strip() for url in repo_urls_input.split(",") if url.strip()]
 
@@ -131,7 +131,7 @@ def main():
 
     if not company_identifier:
         company_identifier = input(
-            "Enter your company identifier (e.g., @mycompany.com or 'My Company Name'): "
+            "Enter your company identifier (e.g., @mycompany.com or 'My Company Name'): ",
         ).strip()
 
     if not company_identifier:
@@ -142,7 +142,7 @@ def main():
         while True:
             try:
                 months_back = int(
-                    input("Enter number of months back to analyze (e.g., 3): ").strip()
+                    input("Enter number of months back to analyze (e.g., 3): ").strip(),
                 )
                 if months_back <= 0:
                     raise ValueError
@@ -155,7 +155,7 @@ def main():
 
     print("\nStarting real Git analysis...")
     analysis_result = analyze_real_git_commits(
-        repo_urls, company_identifier, months_back, deploy_dir
+        repo_urls, company_identifier, months_back, deploy_dir,
     )
 
     if "error" in analysis_result:
