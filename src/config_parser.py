@@ -26,8 +26,8 @@ def load_config_from_ini(file_path: str) -> dict | None:
             git_config["months_back"] = config["GitConfig"].getint("months_back", None)
             git_config["deploy_dir"] = config["GitConfig"].get("deploy_dir", None)
         if "OpenAi" in config:
-            git_config["openai_apikey"] = config["OpenAi"].get("openai_apikey", None)
-            git_config["openai_model"] = config["OpenAi"].get("openai_model", None)
+            git_config["ai_apikey"] = config["OpenAi"].get("ai_apikey", None)
+            git_config["ai_model"] = config["OpenAi"].get("ai_model", None)
         return git_config
     except Exception as e:
         print(f"Error reading INI file {file_path}: {e}")
