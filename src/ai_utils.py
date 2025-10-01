@@ -1,19 +1,18 @@
-"""
-OpenAI Commit Message Summarizer Module
+"""OpenAI Commit Message Summarizer Module
 
 This module provides a function to summarize an author's software development
 contributions based on their Git commit messages using the OpenAI API.
 
 """
 
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
+
 
 def summarize_commit_messages(api_key: str, commit_messages_string: str,
                               n_months: int, author_name: str, ai_model: str) -> str:
-    """
-    Summarizes a string of commit messages using OpenAI's API.
+    """Summarizes a string of commit messages using OpenAI's API.
 
     Args:
         api_key (str): Your OpenAI API key.
@@ -23,14 +22,14 @@ def summarize_commit_messages(api_key: str, commit_messages_string: str,
 
     Returns:
         str: A summary of the author's contributions based on the commit messages.
-    """
 
+    """
     openai_model = ChatOpenAI(model=ai_model, temperature=0.2, api_key=api_key)
 
     prompt = ChatPromptTemplate.from_messages(
         [
             SystemMessage(
-                content="You are a helpful assistant that summarizes software development contributions."
+                content="You are a helpful assistant that summarizes software development contributions.",
             ),
             HumanMessage(
                 content=(
@@ -44,9 +43,9 @@ def summarize_commit_messages(api_key: str, commit_messages_string: str,
                     "- Provide a concise yet comprehensive overview. Maximum 8 sentences. \n\n"
                     "- Important: Use no pronouns. Do not use “they”\n"
                     f"Commit Messages:\n---\n{commit_messages_string}\n---"
-                )
-            )
-        ]
+                ),
+            ),
+        ],
     )
 
     # Create a chain from the prompt and the model
@@ -59,7 +58,7 @@ def summarize_commit_messages(api_key: str, commit_messages_string: str,
                 "author_name": author_name,
                 "n_months": n_months,
                 "commit_messages_string": commit_messages_string,
-            }
+            },
         )
         return response.content
     except Exception as e:

@@ -2,14 +2,14 @@ import configparser
 
 
 def load_config_from_ini(file_path: str) -> dict | None:
-    """
-    Loads configuration from an INI file.
+    """Loads configuration from an INI file.
 
     Args:
         file_path: The path to the INI configuration file.
 
     Returns:
         A dictionary containing the configuration, or None if the file cannot be read.
+
     """
     config = configparser.ConfigParser()
     try:

@@ -1,15 +1,16 @@
 import datetime
-import os
 import textwrap
-import markdown_strings as md
 from collections import defaultdict
 from datetime import datetime
-from src.git_utils import generate_commit_hyperlink
+
+import markdown_strings as md
+
 from src.ai_utils import summarize_commit_messages
+from src.git_utils import generate_commit_hyperlink
+
 
 def generate_article_content(commit_data: list[dict], months_back: int, ai_key: str, ai_model: str) -> str:
-    """
-    Generates a blog article based on commit data.
+    """Generates a blog article based on commit data.
     In a real tool, this would call a large language model API (e.g., Gemini).
 
     Args:
@@ -18,6 +19,7 @@ def generate_article_content(commit_data: list[dict], months_back: int, ai_key: 
 
     Returns:
         A string containing the blog article.
+
     """
     if not commit_data:
         return "No relevant commits found to generate an article."
@@ -44,7 +46,7 @@ Here's a breakdown of key contributions by repository:
 
         commits_by_author = defaultdict(list)
         for commit in repo["commits"]:
-            commits_by_author[commit['author_name']].append(commit)
+            commits_by_author[commit["author_name"]].append(commit)
 
         if not commits_by_author:
             continue
@@ -68,12 +70,12 @@ Here's a breakdown of key contributions by repository:
 
             article_content += f"#### Here the commits of **{author_name}** in detail:\n\n"
             # Sort the commit by Author Name and then by date
-            data = sorted(author_commits, key=lambda x: (x['author_name'], x['date']))
+            data = sorted(author_commits, key=lambda x: (x["author_name"], x["date"]))
             for commit in data:
                 # Ensure the message is handled, even if it's empty or malformed
                 first_line_message = (commit["message"].split("\n")[0] if commit["message"] else "(No message)")
                 first_line_message = first_line_message.replace("_", r"\_")
-                hyperlink = generate_commit_hyperlink(repo['repo_path'], repo['repo_url'], commit['sha1'])
+                hyperlink = generate_commit_hyperlink(repo["repo_path"], repo["repo_url"], commit["sha1"])
                 article_content += f"- **{commit['author_name']}** on {commit['date'].split('T')[0]}: [{first_line_message}]({hyperlink})\n"
             article_content += "\n"
     article_content += """
