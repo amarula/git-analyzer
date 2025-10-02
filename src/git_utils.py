@@ -33,7 +33,6 @@ def generate_commit_hyperlink(repo_path, base_web_url, commit_hash_prefix):
         commit = repo.commit(commit_hash_prefix)
 
         commit_full_hash = commit.hexsha
-        commit_message = commit.summary
         special_cases_prefixes = [
             "https://git.kernel.org",
             "https://git.openembedded.org",
