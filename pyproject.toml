@@ -1,6 +1,6 @@
 [project]
 name = "GitScribeAI"
-version = "0.1.0"
+version = "0.1.1"
 description = "A tool to analyze Git commits and generate articles."
 authors = [
     { name = "Michael Trimarchi", email = "michael@amarulasolutions.com" },
