@@ -29,21 +29,23 @@ def summarize_commit_messages(api_key: str, commit_messages_string: str,
     prompt = ChatPromptTemplate.from_messages(
         [
             SystemMessage(
-                content="You are a helpful assistant that summarizes software development contributions.",
+                content=(
+                    "You are a Technical Lead creating executive summaries of engineering contributions. "
+                    "Your goal is to produce a strict, factual, and concise report of the work done.\n\n"
+                    "### STYLE GUIDELINES:\n"
+                    "1. **Tone:** Clinical and technical. No fluff, no adjectives describing effort (e.g., remove words like 'meticulous', 'significant', 'comprehensive', 'showcasing').\n"
+                    "2. **Structure:** Use active verbs to start sentences (e.g., 'Updated', 'Fixed', 'Refactored').\n"
+                    f"3. **Identity:** Refer to the author ONLY as '{author_name}'. Do not use ANY pronouns (he, she, they, their, his). If a reference is needed, repeat the name or rephrase the sentence to be passive.\n"
+                    "4. **Content:** Focus strictly on the *what* and *why* (technical changes and business value). Do not describe the *how* (e.g., do not mention 'instructions were included' unless it is a documentation task).\n"
+                )
             ),
             HumanMessage(
                 content=(
-                    f"Summarize the following software development contributions from an author named {author_name},"
-                    f" over a period of {n_months} months, based on commit messages.\n"
-                    f"- Don't change the author name that must be {author_name}.\n"
-                    f"- Do not use gendered pronouns (like he, she, or they); always refer to the author with {author_name};\n"
-                    "- Focus on key features, bug fixes, improvements, and overall progress.\n"
-                    "- Some entries may be changelogs, not commits. If it looks like a changelog,"
-                    " summarize the overall changes, not individual items.\n"
-                    "- Provide a concise yet comprehensive overview. Maximum 8 sentences. \n\n"
-                    "- Important: Use no pronouns. Do not use “they”\n"
+                    f"Author: {author_name}\n"
+                    f"Timeframe: {n_months} months\n"
+                    "Task: Summarize the following commit messages into a concise technical paragraph (max 4 sentences).\n\n"
                     f"Commit Messages:\n---\n{commit_messages_string}\n---"
-                ),
+                )
             ),
         ],
     )
