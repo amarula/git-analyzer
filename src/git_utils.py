@@ -9,6 +9,7 @@ existing ones.
 
 import datetime
 import os
+import re
 import shutil
 from datetime import datetime, timedelta
 
@@ -229,11 +230,29 @@ def analyze_real_git_commits(
                     commit_message = commit.message.strip()
                     sha1_hash = commit.hexsha
 
-                    # Filter by company identifier (case-insensitive)
-                    if (
-                        company_identifier.lower() in author_name.lower()
-                        or company_identifier.lower() in author_email.lower()
-                    ):
+                    comp_id_lower = company_identifier.lower()
+
+                    is_direct_match = (
+                        comp_id_lower in author_name.lower()
+                        or comp_id_lower in author_email.lower()
+                    )
+
+                    sob_pattern = r'Signed-off-by:.*' + re.escape(comp_id_lower)
+                    sob_match = re.search(sob_pattern, commit_message, re.IGNORECASE)
+
+                    is_signer_match = bool(sob_match)
+
+                    if is_direct_match or is_signer_match:
+                        # IMPROVEMENT: If the match came from the message (Signed-off-by)
+                        # but not the main author field (likely a GitHub noreply address),
+                        # let's try to extract the REAL email from the message.
+                        if is_signer_match and not is_direct_match:
+                            email_extract_pattern = r'<([^>]+)>'
+                            email_match = re.search(email_extract_pattern, sob_match.group(0))
+
+                            if email_match:
+                                author_email = email_match.group(1)
+
                         repo_commits_list.append(
                             {
                                 "hash": commit.hexsha,
