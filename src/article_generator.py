@@ -9,13 +9,23 @@ from src.ai_utils import summarize_commit_messages
 from src.git_utils import generate_commit_hyperlink
 
 
-def generate_article_content(commit_data: list[dict], months_back: int, ai_key: str, ai_model: str) -> str:
+def generate_article_content(
+    commit_data: list[dict],
+    months_back: int,
+    ai_key: str,
+    ai_model: str,
+    month_label: str = None,
+    report_date=None,
+) -> str:
     """Generates a blog article based on commit data.
-    In a real tool, this would call a large language model API (e.g., Gemini).
 
     Args:
         commit_data: Structured commit data.
         months_back: The number of months the analysis covered.
+        ai_key: OpenAI API key for commit summarization.
+        ai_model: OpenAI model name.
+        month_label: Optional label for a single-month report (e.g. "2026-06").
+        report_date: Optional datetime to use as the report date (end of month).
 
     Returns:
         A string containing the blog article.
@@ -24,8 +34,21 @@ def generate_article_content(commit_data: list[dict], months_back: int, ai_key: 
     if not commit_data:
         return "No relevant commits found to generate an article."
 
-    today = datetime.now()
-    article_content = f"""
+    if month_label and report_date:
+        report_date_str = report_date.strftime("%Y-%m-%d") if hasattr(report_date, "strftime") else str(report_date)
+        article_content = f"""
+# Today {report_date_str} Developments: A Look at Our Codebase ({month_label} Monthly Review)
+
+We're excited to share a summary of the significant progress made across our repositories
+in the month of {month_label}. Our dedicated team has been busy pushing new features,
+refining existing functionalities, and enhancing the overall stability of our products.
+
+Here's a breakdown of key contributions by repository:
+
+"""
+    else:
+        today = datetime.now()
+        article_content = f"""
 # Today {today.strftime('%Y-%m-%d')} Developments: A Look at Our Codebase ({months_back} Months Review)
 
 We're excited to share a summary of the significant progress made across our repositories

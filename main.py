@@ -1,10 +1,44 @@
 import argparse
+from datetime import datetime, timedelta
 
 from src.article_generator import generate_article_content
 from src.config_parser import load_config_from_ini
 
 # Import functions from the new modules
 from src.git_utils import analyze_real_git_commits
+
+
+def get_calendar_months(months_back: int) -> list[tuple[datetime, datetime, str]]:
+    """Return a list of (since_date, until_date, month_label) for the last N
+    complete calendar months.
+
+    Args:
+        months_back: Number of complete calendar months to look back.
+
+    Returns:
+        A list of tuples (since_date, until_date, month_label) where each entry
+        covers exactly one calendar month, from oldest to newest.
+
+    """
+    today = datetime.now()
+    months = []
+    for i in range(months_back, 0, -1):
+        year = today.year
+        month = today.month - i
+        while month <= 0:
+            month += 12
+            year -= 1
+        # First day of the target month
+        since = datetime(year, month, 1)
+        # Last day of the target month
+        if month == 12:
+            until = datetime(year + 1, 1, 1) - timedelta(days=1)
+        else:
+            until = datetime(year, month + 1, 1) - timedelta(days=1)
+        until = until.replace(hour=23, minute=59, second=59)
+        label = f"{year}-{month:02d}"
+        months.append((since, until, label))
+    return months
 
 
 def main():
@@ -153,46 +187,84 @@ def main():
     if ai_key and not ai_model:
         ai_model = "gpt-3.5-turbo"
 
-    print("\nStarting real Git analysis...")
-    analysis_result = analyze_real_git_commits(
-        repo_urls, company_identifier, months_back, deploy_dir,
-    )
-
-    if "error" in analysis_result:
-        print(f"\nError during Git analysis: {analysis_result['error']}")
-        return
-
-    commit_data = analysis_result.get("commit_data", [])
-
-    article = generate_article_content(commit_data, months_back, ai_key, ai_model)
-
-    print("\n--- Generated Article ---")
-    print(article)
-    print("\n--- End of Article ---")
-
-    if save_file_name:
-        try:
-            with open(save_file_name, "w", encoding="utf-8") as f:
-                f.write(article)
-            print(f"Article automatically saved to {save_file_name}")
-        except Exception as e:
-            print(f"Error automatically saving file {save_file_name}: {e}")
+    # Determine which months to process.
+    # For a single month, use the original behaviour (single report with
+    # today's date).  For multiple months, iterate over complete calendar
+    # months so each report covers exactly one month and is dated with the
+    # last day of that month.
+    if months_back > 1:
+        calendar_months = get_calendar_months(months_back)
     else:
-        save_option = (
-            input("\nDo you want to save the article to a file? (yes/no): ")
-            .lower()
-            .strip()
+        calendar_months = [(None, None, None)]  # sentinel: use legacy behaviour
+
+    for since_date, until_date, month_label in calendar_months:
+        if month_label is not None:
+            print(f"\n--- Processing month: {month_label} "
+                  f"({since_date.strftime('%Y-%m-%d')} to "
+                  f"{until_date.strftime('%Y-%m-%d')}) ---")
+
+        print("\nStarting real Git analysis...")
+        analysis_result = analyze_real_git_commits(
+            repo_urls,
+            company_identifier,
+            months_back,
+            deploy_dir,
+            since_date=since_date,
+            until_date=until_date,
         )
-        if save_option == "yes":
-            file_name = input("Enter desired filename (e.g., git_report.md): ").strip()
-            if not file_name:
-                file_name = "git_report.md"
+
+        if "error" in analysis_result:
+            print(f"\nError during Git analysis: {analysis_result['error']}")
+            return
+
+        commit_data = analysis_result.get("commit_data", [])
+
+        article = generate_article_content(
+            commit_data,
+            months_back,
+            ai_key,
+            ai_model,
+            month_label=month_label,
+            report_date=until_date,
+        )
+
+        print("\n--- Generated Article ---")
+        print(article)
+        print("\n--- End of Article ---")
+
+        if save_file_name:
+            # When processing multiple months, derive per-month filenames.
+            if month_label is not None:
+                base, ext = (save_file_name.rsplit(".", 1)
+                             if "." in save_file_name
+                             else (save_file_name, "md"))
+                month_file = f"{base}_{month_label}.{ext}"
+            else:
+                month_file = save_file_name
             try:
-                with open(file_name, "w", encoding="utf-8") as f:
+                with open(month_file, "w", encoding="utf-8") as f:
                     f.write(article)
-                print(f"Article saved to {file_name}")
+                print(f"Article automatically saved to {month_file}")
             except Exception as e:
-                print(f"Error saving file: {e}")
+                print(f"Error automatically saving file {month_file}: {e}")
+        else:
+            save_option = (
+                input("\nDo you want to save the article to a file? (yes/no): ")
+                .lower()
+                .strip()
+            )
+            if save_option == "yes":
+                file_name = input(
+                    "Enter desired filename (e.g., git_report.md): "
+                ).strip()
+                if not file_name:
+                    file_name = "git_report.md"
+                try:
+                    with open(file_name, "w", encoding="utf-8") as f:
+                        f.write(article)
+                    print(f"Article saved to {file_name}")
+                except Exception as e:
+                    print(f"Error saving file: {e}")
 
 
 if __name__ == "__main__":

@@ -150,7 +150,12 @@ def git_pull_or_clone(remote_url=None, repo_path="."):
 
 
 def analyze_real_git_commits(
-    repo_urls: list[str], company_identifier: str, months_back: int, deploy_dir_name: str,
+    repo_urls: list[str],
+    company_identifier: str,
+    months_back: int,
+    deploy_dir_name: str,
+    since_date=None,
+    until_date=None,
 ) -> dict:
     """Clones Git repositories, finds commits by a specified company within a timeframe,
     and returns structured commit data.
@@ -161,6 +166,8 @@ def analyze_real_git_commits(
                             of the committer name).
         months_back: An integer representing the number of months to look back for commits.
         deploy_dir_name: The name of the directory where repositories will be cloned.
+        since_date: Optional datetime to override the start of the commit range.
+        until_date: Optional datetime to set the end of the commit range.
 
     Returns:
         A dictionary containing the structured commit data or an error message.
@@ -175,8 +182,11 @@ def analyze_real_git_commits(
         # Ensure the deploy directory exists
         os.makedirs(deploy_target_dir, exist_ok=True)
 
-        # Calculate the 'since' date for commit filtering
-        since_date = datetime.now() - timedelta(days=months_back * 30)
+        # Calculate the 'since' date for commit filtering.
+        # Use explicit since_date/until_date if provided, otherwise fall back
+        # to the months_back approximation.
+        if since_date is None:
+            since_date = datetime.now() - timedelta(days=months_back * 30)
 
         for repo_url in repo_urls:
             repo_name = repo_url.split("/")[-1].replace(".git", "")
@@ -223,7 +233,10 @@ def analyze_real_git_commits(
                 # We filter by `after` date to get commits since `since_date`
                 # and exclude merge commits by checking if the commit has more than one parent.
                 # GitPython's log method can also take `after` and `no_merges` arguments directly.
-                for commit in repo.iter_commits(since=since_date, no_merges=True):
+                iter_kwargs = {"since": since_date, "no_merges": True}
+                if until_date is not None:
+                    iter_kwargs["before"] = until_date
+                for commit in repo.iter_commits(**iter_kwargs):
                     author_name = commit.author.name
                     author_email = commit.author.email
                     commit_date = datetime.fromtimestamp(commit.authored_date).isoformat()
