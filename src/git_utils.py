@@ -29,6 +29,7 @@ def generate_commit_hyperlink(repo_path, base_web_url, commit_hash_prefix):
         str: The hyperlink string, or None if the commit is not found.
 
     """
+    repo = None
     try:
         repo = Repo(repo_path)
         commit = repo.commit(commit_hash_prefix)
@@ -56,6 +57,9 @@ def generate_commit_hyperlink(repo_path, base_web_url, commit_hash_prefix):
     except Exception as e:
         print(f"Error generating hyperlink: {e}")
         return None
+    finally:
+        if repo is not None:
+            repo.close()
 
 
 def git_pull_or_clone(remote_url=None, repo_path="."):
@@ -112,11 +116,13 @@ def git_pull_or_clone(remote_url=None, repo_path="."):
             repo.remotes.origin.pull()
 
             print("Git pull successful:")
+            repo.close()
             return Repo(abs_repo_path)
         except GitCommandError as e:
             print(f"Error during 'git pull': {e}")
             print(f"Stdout: {e.stdout}")
             print(f"Stderr: {e.stderr}")
+            repo.close()
 
             if remote_url:
                 print(f"Git pull failed. Attempting to remove '{abs_repo_path}' and re-clone...")
@@ -335,6 +341,9 @@ def analyze_real_git_commits(
                         "commits": [],
                     },
                 )
+            finally:
+                if repo is not None:
+                    repo.close()
 
         return {
             "commit_data": all_repo_commits_structured,
