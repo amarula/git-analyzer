@@ -16,50 +16,30 @@ from datetime import datetime, timedelta
 from git import GitCommandError, InvalidGitRepositoryError, NoSuchPathError, Repo
 
 
-def generate_commit_hyperlink(repo_path, base_web_url, commit_hash_prefix):
-    """Generates an hyperlink to a Git commit on a web platform.
+def generate_commit_hyperlink(base_web_url, commit_full_hash):
+    """Build a web URL pointing to a specific commit.
 
     Args:
-        repo_path (str): The path to the local Git repository.
         base_web_url (str): The base URL for the repository on the web
                             (e.g., "https://github.com/your_username/your_repo").
-        commit_hash_prefix (str): A full or partial commit hash.
+        commit_full_hash (str): The full commit SHA (hexsha).
 
     Returns:
-        str: The hyperlink string, or None if the commit is not found.
+        str: The hyperlink string.
 
     """
-    repo = None
-    try:
-        repo = Repo(repo_path)
-        commit = repo.commit(commit_hash_prefix)
+    special_cases_prefixes = [
+        "https://git.kernel.org",
+        "https://git.openembedded.org",
+    ]
 
-        commit_full_hash = commit.hexsha
-        special_cases_prefixes = [
-            "https://git.kernel.org",
-            "https://git.openembedded.org",
-        ]
+    for prefix in special_cases_prefixes:
+        if base_web_url.startswith(prefix):
+            return f"{base_web_url}/commit/?id={commit_full_hash}"
 
-        commit_url = None
-        for prefix in special_cases_prefixes:
-            if base_web_url.startswith(prefix):
-                commit_url = f"{base_web_url}/commit/?id={commit_full_hash}"
-                break
-
-        if commit_url is None:
-            if base_web_url.endswith(".git"):
-                base_web_url = base_web_url[:-4]
-            commit_url = f"{base_web_url}/commit/{commit_full_hash}"
-
-        hyperlink = f"{commit_url}"
-        return hyperlink
-
-    except Exception as e:
-        print(f"Error generating hyperlink: {e}")
-        return None
-    finally:
-        if repo is not None:
-            repo.close()
+    if base_web_url.endswith(".git"):
+        base_web_url = base_web_url[:-4]
+    return f"{base_web_url}/commit/{commit_full_hash}"
 
 
 def git_pull_or_clone(remote_url=None, repo_path="."):
