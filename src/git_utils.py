@@ -193,10 +193,9 @@ def analyze_real_git_commits(
             repo_path = os.path.join(deploy_target_dir, repo_name)
 
             print(f"Cloning {repo_url} directly into {repo_path}...")
+            repo = None
             try:
                 repo = git_pull_or_clone(repo_url, repo_path)
-                print(f"Successfully cloned {repo_name}.")
-
             except GitCommandError as e:
                 error_msg = str(e)
                 print(f"Error cloning repository {repo_url}: {error_msg}")
@@ -206,10 +205,10 @@ def analyze_real_git_commits(
                         "repo_url": repo_url,
                         "repo_path": repo_path,
                         "error": f"Failed to clone: {error_msg}",
-                        "commits": [],  # No commits if clone failed
+                        "commits": [],
                     },
                 )
-                continue  # Skip to next repository
+                continue
             except Exception as e:
                 print(
                     f"An unexpected error occurred during cloning {repo_url}: {e!s}",
@@ -224,6 +223,33 @@ def analyze_real_git_commits(
                     },
                 )
                 continue
+
+            if repo is None:
+                error_msg = (
+                    f"Failed to clone repository (remote returned an error "
+                    f"or is unreachable)"
+                )
+                print(f"Error: {error_msg}")
+                # Clean up any partial clone directory left behind so the
+                # next run doesn't mistake it for a valid repo.
+                if os.path.exists(repo_path):
+                    try:
+                        shutil.rmtree(repo_path)
+                        print(f"Removed partial clone directory '{repo_path}'.")
+                    except OSError as remove_e:
+                        print(f"Error removing partial directory '{repo_path}': {remove_e}")
+                all_repo_commits_structured.append(
+                    {
+                        "repo_name": repo_name,
+                        "repo_url": repo_url,
+                        "repo_path": repo_path,
+                        "error": error_msg,
+                        "commits": [],
+                    },
+                )
+                continue
+
+            print(f"Successfully cloned {repo_name}.")
 
             print(f"Analyzing commits for {repo_name} since "
                   f"{since_date.strftime('%Y-%m-%d %H:%M:%S')}...")
