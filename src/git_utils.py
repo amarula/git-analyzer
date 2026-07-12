@@ -43,7 +43,7 @@ def generate_commit_hyperlink(base_web_url, commit_full_hash):
     return f"{base_web_url}/commit/{commit_full_hash}"
 
 
-def git_pull_or_clone(remote_url=None, repo_path="."):
+def git_pull_or_clone(remote_url=None, repo_path=".", shallow_since=None):
     """Checks if a directory is a Git repository.
     If it is, performs a 'git pull'.
     If 'git pull' fails, or if the directory is not a valid Git repository initially,
@@ -56,6 +56,10 @@ def git_pull_or_clone(remote_url=None, repo_path="."):
                                     or if a pull fails and a re-clone is desired.
         repo_path (str): The path to the directory to check or clone into.
                          Defaults to the current directory.
+        shallow_since (str, optional): ISO date string (e.g. "2026-04-01").
+                                       When provided, clones are shallow from
+                                       this date onward, and existing shallow
+                                       repos are deepened/re-cloned if needed.
 
     Returns:
         repo: Return the repository if the clone is successfull otherwise None.
@@ -67,16 +71,35 @@ def git_pull_or_clone(remote_url=None, repo_path="."):
     # Helper function to perform cloning
     def _perform_clone(url, path):
         print(f"Attempting to clone repository from '{url}' into '{path}'...")
+        clone_kwargs = {}
+        if shallow_since:
+            clone_kwargs["multi_options"] = [f"--shallow-since={shallow_since}"]
+            print(f"  (shallow clone since {shallow_since})")
         try:
             # Ensure the parent directory exists before cloning
             parent_dir = os.path.dirname(path)
             if parent_dir and not os.path.exists(parent_dir):
                 os.makedirs(parent_dir)
 
-            repo = Repo.clone_from(url, path)
+            repo = Repo.clone_from(url, path, **clone_kwargs)
             print(f"Repository successfully cloned into '{path}'.")
             return repo
         except GitCommandError as e:
+            # If shallow clone fails (e.g. server doesn't support it),
+            # fall back to a full clone.
+            if shallow_since and "shallow" in str(e).lower():
+                print(f"Shallow clone failed, falling back to full clone...")
+                try:
+                    if os.path.exists(path):
+                        shutil.rmtree(path)
+                    repo = Repo.clone_from(url, path)
+                    print(f"Full clone succeeded into '{path}'.")
+                    return repo
+                except GitCommandError as e2:
+                    print(f"Error during fallback 'git clone': {e2}")
+                    print(f"Stdout: {e2.stdout}")
+                    print(f"Stderr: {e2.stderr}")
+                    return None
             print(f"Error during 'git clone': {e}")
             print(f"Stdout: {e.stdout}")
             print(f"Stderr: {e.stderr}")
@@ -85,9 +108,37 @@ def git_pull_or_clone(remote_url=None, repo_path="."):
             print(f"An unexpected error occurred during cloning: {e}")
             return None
 
+    def _oldest_commit_date(repo):
+        """Return the authored date of the oldest commit in the repo."""
+        try:
+            out = repo.git.log("--reverse", "--format=%at", "-1")
+            return datetime.fromtimestamp(int(out.strip()))
+        except Exception:
+            return None
+
     try:
         # Attempt to open the directory as an existing Git repository
         repo = Repo(abs_repo_path)
+
+        # If this is a shallow clone and we need an earlier start date,
+        # check whether the repo goes back far enough.
+        shallow_file = os.path.join(abs_repo_path, ".git", "shallow")
+        if shallow_since and os.path.exists(shallow_file):
+            oldest = _oldest_commit_date(repo)
+            try:
+                needed = datetime.strptime(shallow_since, "%Y-%m-%d")
+            except ValueError:
+                needed = None
+
+            if oldest and needed and oldest > needed:
+                print(
+                    f"Shallow repo oldest commit ({oldest.strftime('%Y-%m-%d')}) "
+                    f"is newer than needed ({shallow_since}); re-cloning deeper."
+                )
+                repo.close()
+                if os.path.exists(abs_repo_path):
+                    shutil.rmtree(abs_repo_path)
+                return _perform_clone(remote_url, abs_repo_path)
 
         print(f"'{abs_repo_path}' appears to be an existing Git repository.")
         print("Attempting to perform 'git pull' using GitPython...")
@@ -198,8 +249,10 @@ def analyze_real_git_commits(
 
             print(f"Cloning {repo_url} directly into {repo_path}...")
             repo = None
+            shallow_arg = since_date.strftime("%Y-%m-%d") if since_date else None
             try:
-                repo = git_pull_or_clone(repo_url, repo_path)
+                repo = git_pull_or_clone(repo_url, repo_path,
+                                         shallow_since=shallow_arg)
             except GitCommandError as e:
                 error_msg = str(e)
                 print(f"Error cloning repository {repo_url}: {error_msg}")
