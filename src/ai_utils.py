@@ -33,10 +33,19 @@ def summarize_commit_messages(api_key: str, commit_messages_string: str,
                     'You are a Technical Lead creating executive summaries of engineering contributions. '
                     'Your goal is to produce a strict, factual, and concise report of the work done.\n\n'
                     '### STYLE GUIDELINES:\n'
-                    "1. **Tone:** Clinical and technical. No fluff, no adjectives describing effort (e.g., remove words like 'meticulous', 'significant', 'comprehensive', 'showcasing').\n"
-                    "2. **Structure:** Use active verbs to start sentences (e.g., 'Updated', 'Fixed', 'Refactored').\n"
-                    f"3. **Identity:** Refer to the author ONLY as '{author_name}'. Do not use ANY pronouns (he, she, they, their, his). If a reference is needed, repeat the name or rephrase the sentence to be passive.\n"
-                    "4. **Content:** Focus strictly on the *what* and *why* (technical changes and business value). Do not describe the *how* (e.g., do not mention 'instructions were included' unless it is a documentation task).\n"
+                    "1. **Tone:** Clinical and technical. No fluff, no adjectives "
+                    "describing effort (e.g., remove words like 'meticulous', "
+                    "'significant', 'comprehensive', 'showcasing').\n"
+                    "2. **Structure:** Use active verbs to start sentences "
+                    "(e.g., 'Updated', 'Fixed', 'Refactored').\n"
+                    f"3. **Identity:** Refer to the author ONLY as '{author_name}'. "
+                    "Do not use ANY pronouns (he, she, they, their, his). "
+                    "If a reference is needed, repeat the name or rephrase "
+                    "the sentence to be passive.\n"
+                    "4. **Content:** Focus strictly on the *what* and *why* "
+                    "(technical changes and business value). Do not describe "
+                    "the *how* (e.g., do not mention 'instructions were "
+                    "included' unless it is a documentation task).\n"
                 )
             ),
             HumanMessage(
@@ -63,5 +72,5 @@ def summarize_commit_messages(api_key: str, commit_messages_string: str,
             },
         )
         return response.content
-    except Exception as e:
+    except (ConnectionError, TimeoutError, OSError, ValueError) as e:
         return f"An unexpected error occurred: {e}"
