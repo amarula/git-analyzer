@@ -30,9 +30,9 @@ def summarize_commit_messages(api_key: str, commit_messages_string: str,
         [
             SystemMessage(
                 content=(
-                    "You are a Technical Lead creating executive summaries of engineering contributions. "
-                    "Your goal is to produce a strict, factual, and concise report of the work done.\n\n"
-                    "### STYLE GUIDELINES:\n"
+                    'You are a Technical Lead creating executive summaries of engineering contributions. '
+                    'Your goal is to produce a strict, factual, and concise report of the work done.\n\n'
+                    '### STYLE GUIDELINES:\n'
                     "1. **Tone:** Clinical and technical. No fluff, no adjectives describing effort (e.g., remove words like 'meticulous', 'significant', 'comprehensive', 'showcasing').\n"
                     "2. **Structure:** Use active verbs to start sentences (e.g., 'Updated', 'Fixed', 'Refactored').\n"
                     f"3. **Identity:** Refer to the author ONLY as '{author_name}'. Do not use ANY pronouns (he, she, they, their, his). If a reference is needed, repeat the name or rephrase the sentence to be passive.\n"
@@ -43,7 +43,7 @@ def summarize_commit_messages(api_key: str, commit_messages_string: str,
                 content=(
                     f"Author: {author_name}\n"
                     f"Timeframe: {n_months} months\n"
-                    "Task: Summarize the following commit messages into a concise technical paragraph (max 4 sentences).\n\n"
+                    'Task: Summarize the following commit messages into a concise technical paragraph (max 4 sentences).\n\n'
                     f"Commit Messages:\n---\n{commit_messages_string}\n---"
                 )
             ),
@@ -57,9 +57,9 @@ def summarize_commit_messages(api_key: str, commit_messages_string: str,
     try:
         response = chain.invoke(
             {
-                "author_name": author_name,
-                "n_months": n_months,
-                "commit_messages_string": commit_messages_string,
+                'author_name': author_name,
+                'n_months': n_months,
+                'commit_messages_string': commit_messages_string,
             },
         )
         return response.content

@@ -32,10 +32,11 @@ def generate_article_content(
 
     """
     if not commit_data:
-        return "No relevant commits found to generate an article."
+        return 'No relevant commits found to generate an article.'
 
     if month_label and report_date:
-        report_date_str = report_date.strftime("%Y-%m-%d") if hasattr(report_date, "strftime") else str(report_date)
+        report_date_str = report_date.strftime(
+            '%Y-%m-%d') if hasattr(report_date, 'strftime') else str(report_date)
         article_content = f"""
 # Today {report_date_str} Developments: A Look at Our Codebase ({month_label} Monthly Review)
 
@@ -61,46 +62,55 @@ Here's a breakdown of key contributions by repository:
 
     for repo in commit_data:
 
-        if "error" in repo or not repo["commits"]:
+        if 'error' in repo or not repo['commits']:
             continue
 
         article_content += f"## {repo['repo_name']}\n\n"
         article_content += f"Repository URL: {repo['repo_url']}\n\n"
 
         commits_by_author = defaultdict(list)
-        for commit in repo["commits"]:
-            commits_by_author[commit["author_name"]].append(commit)
+        for commit in repo['commits']:
+            commits_by_author[commit['author_name']].append(commit)
 
         if not commits_by_author:
             continue
 
-        article_content += "### Summary of the contributions by author:\n\n"
+        article_content += '### Summary of the contributions by author:\n\n'
 
         for author_name, author_commits in sorted(commits_by_author.items()):
-            all_author_messages = "\n".join([
-                    commit["message"] if commit["message"] else "(No message provided)"
-                    for commit in author_commits
-                ])
+            all_author_messages = '\n'.join([
+                commit['message'] if commit['message'] else '(No message provided)'
+                for commit in author_commits
+            ])
 
             if ai_key:
                 ai_summary = summarize_commit_messages(ai_key, all_author_messages,
                                                        months_back, author_name, ai_model)
                 ai_summary = md.esc_format(ai_summary, esc=True)
-                article_content += "\n"
+                article_content += '\n'
                 if ai_summary:
                     wrapped_summary = textwrap.fill(ai_summary, width=100)
                     article_content += f"**{author_name}**: {wrapped_summary}\n\n"
 
             article_content += f"#### Here the commits of **{author_name}** in detail:\n\n"
             # Sort the commit by Author Name and then by date
-            data = sorted(author_commits, key=lambda x: (x["author_name"], x["date"]))
+            data = sorted(
+                author_commits,
+                key=lambda x: (
+                    x['author_name'],
+                    x['date']))
             for commit in data:
-                # Ensure the message is handled, even if it's empty or malformed
-                first_line_message = (commit["message"].split("\n")[0] if commit["message"] else "(No message)")
-                first_line_message = first_line_message.replace("_", r"\_")
-                hyperlink = generate_commit_hyperlink(repo["repo_url"], commit["sha1"])
-                article_content += f"- **{commit['author_name']}** on {commit['date'].split('T')[0]}: [{first_line_message}]({hyperlink})\n"
-            article_content += "\n"
+                # Ensure the message is handled, even if it's empty or
+                # malformed
+                first_line_message = (commit['message'].split(
+                    '\n')[0] if commit['message'] else '(No message)')
+                first_line_message = first_line_message.replace('_', r'\_')
+                hyperlink = generate_commit_hyperlink(
+                    repo['repo_url'], commit['sha1'])
+                article_content += f"- **{
+                    commit['author_name']}** on {
+                    commit['date'].split('T')[0]}: [{first_line_message}]({hyperlink})\n"
+            article_content += '\n'
     article_content += """
 This overview highlights the continuous effort and innovation from our development team. We look forward to bringing even more exciting updates in the future!
 

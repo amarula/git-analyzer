@@ -30,20 +30,20 @@ def generate_commit_hyperlink(base_web_url, commit_full_hash):
 
     """
     special_cases_prefixes = [
-        "https://git.kernel.org",
-        "https://git.openembedded.org",
+        'https://git.kernel.org',
+        'https://git.openembedded.org',
     ]
 
     for prefix in special_cases_prefixes:
         if base_web_url.startswith(prefix):
             return f"{base_web_url}/commit/?id={commit_full_hash}"
 
-    if base_web_url.endswith(".git"):
+    if base_web_url.endswith('.git'):
         base_web_url = base_web_url[:-4]
     return f"{base_web_url}/commit/{commit_full_hash}"
 
 
-def git_pull_or_clone(remote_url=None, repo_path=".", shallow_since=None):
+def git_pull_or_clone(remote_url=None, repo_path='.', shallow_since=None):
     """Checks if a directory is a Git repository.
     If it is, performs a 'git pull'.
     If 'git pull' fails, or if the directory is not a valid Git repository initially,
@@ -73,7 +73,8 @@ def git_pull_or_clone(remote_url=None, repo_path=".", shallow_since=None):
         print(f"Attempting to clone repository from '{url}' into '{path}'...")
         clone_kwargs = {}
         if shallow_since:
-            clone_kwargs["multi_options"] = [f"--shallow-since={shallow_since}"]
+            clone_kwargs['multi_options'] = [
+                f"--shallow-since={shallow_since}"]
             print(f"  (shallow clone since {shallow_since})")
         try:
             # Ensure the parent directory exists before cloning
@@ -87,8 +88,8 @@ def git_pull_or_clone(remote_url=None, repo_path=".", shallow_since=None):
         except GitCommandError as e:
             # If shallow clone fails (e.g. server doesn't support it),
             # fall back to a full clone.
-            if shallow_since and "shallow" in str(e).lower():
-                print(f"Shallow clone failed, falling back to full clone...")
+            if shallow_since and 'shallow' in str(e).lower():
+                print("Shallow clone failed, falling back to full clone...")
                 try:
                     if os.path.exists(path):
                         shutil.rmtree(path)
@@ -111,7 +112,7 @@ def git_pull_or_clone(remote_url=None, repo_path=".", shallow_since=None):
     def _oldest_commit_date(repo):
         """Return the authored date of the oldest commit in the repo."""
         try:
-            out = repo.git.log("--reverse", "--format=%at", "-1")
+            out = repo.git.log('--reverse', '--format=%at', '-1')
             return datetime.fromtimestamp(int(out.strip()))
         except Exception:
             return None
@@ -122,17 +123,18 @@ def git_pull_or_clone(remote_url=None, repo_path=".", shallow_since=None):
 
         # If this is a shallow clone and we need an earlier start date,
         # check whether the repo goes back far enough.
-        shallow_file = os.path.join(abs_repo_path, ".git", "shallow")
+        shallow_file = os.path.join(abs_repo_path, '.git', 'shallow')
         if shallow_since and os.path.exists(shallow_file):
             oldest = _oldest_commit_date(repo)
             try:
-                needed = datetime.strptime(shallow_since, "%Y-%m-%d")
+                needed = datetime.strptime(shallow_since, '%Y-%m-%d')
             except ValueError:
                 needed = None
 
             if oldest and needed and oldest > needed:
                 print(
-                    f"Shallow repo oldest commit ({oldest.strftime('%Y-%m-%d')}) "
+                    f"Shallow repo oldest commit ({
+                        oldest.strftime('%Y-%m-%d')}) "
                     f"is newer than needed ({shallow_since}); re-cloning deeper."
                 )
                 repo.close()
@@ -147,7 +149,7 @@ def git_pull_or_clone(remote_url=None, repo_path=".", shallow_since=None):
             # Perform git pull from the 'origin' remote
             repo.remotes.origin.pull()
 
-            print("Git pull successful:")
+            print('Git pull successful:')
             repo.close()
             return Repo(abs_repo_path)
         except GitCommandError as e:
@@ -157,34 +159,37 @@ def git_pull_or_clone(remote_url=None, repo_path=".", shallow_since=None):
             repo.close()
 
             if remote_url:
-                print(f"Git pull failed. Attempting to remove '{abs_repo_path}' and re-clone...")
+                print(
+                    f"Git pull failed. Attempting to remove '{abs_repo_path}' and re-clone...")
                 # Remove the existing directory
                 if os.path.exists(abs_repo_path):
                     try:
                         shutil.rmtree(abs_repo_path)
                         print(f"Removed existing directory '{abs_repo_path}'.")
                     except OSError as remove_e:
-                        print(f"Error removing directory '{abs_repo_path}': {remove_e}")
-                        return None # Cannot proceed with re-clone if removal fails
+                        print(
+                            f"Error removing directory '{abs_repo_path}': {remove_e}")
+                        return None  # Cannot proceed with re-clone if removal fails
 
                 # Now attempt to re-clone
                 return _perform_clone(remote_url, abs_repo_path)
 
-            print("Git pull failed and no remote URL provided for re-cloning.")
-            return None # Operation was attempted, but failed without re-clone option
+            print('Git pull failed and no remote URL provided for re-cloning.')
+            return None  # Operation was attempted, but failed without re-clone option
 
     except (InvalidGitRepositoryError, NoSuchPathError):
-        # If it's not a valid Git repository or the path doesn't exist, try to clone
+        # If it's not a valid Git repository or the path doesn't exist, try to
+        # clone
         print(f"'{abs_repo_path}' is not a valid Git repository or does not exist.")
         if remote_url:
             return _perform_clone(remote_url, abs_repo_path)
 
-        print("No remote URL provided to clone the repository.")
-        return None # No operation attempted
+        print('No remote URL provided to clone the repository.')
+        return None  # No operation attempted
 
-    except Exception as e: # Catch any other unexpected errors at the top level
+    except Exception as e:  # Catch any other unexpected errors at the top level
         print(f"An unexpected error occurred: {e}")
-        return None # An operation was attempted, even if it failed
+        return None  # An operation was attempted, even if it failed
 
 
 def _repo_dir_name(repo_url: str) -> str:
@@ -195,13 +200,13 @@ def _repo_dir_name(repo_url: str) -> str:
     (e.g. STMicroelectronics/linux vs torvalds/linux).
     """
     parsed = urlparse(repo_url)
-    path = parsed.path.rstrip("/")
-    if path.endswith(".git"):
+    path = parsed.path.rstrip('/')
+    if path.endswith('.git'):
         path = path[:-4]
-    segments = [s for s in path.split("/") if s]
+    segments = [s for s in path.split('/') if s]
     if len(segments) >= 2:
-        return "_".join(segments[-2:])
-    return segments[-1] if segments else "unknown"
+        return '_'.join(segments[-2:])
+    return segments[-1] if segments else 'unknown'
 
 
 def analyze_real_git_commits(
@@ -249,7 +254,8 @@ def analyze_real_git_commits(
 
             print(f"Cloning {repo_url} directly into {repo_path}...")
             repo = None
-            shallow_arg = since_date.strftime("%Y-%m-%d") if since_date else None
+            shallow_arg = since_date.strftime(
+                '%Y-%m-%d') if since_date else None
             try:
                 repo = git_pull_or_clone(repo_url, repo_path,
                                          shallow_since=shallow_arg)
@@ -258,33 +264,34 @@ def analyze_real_git_commits(
                 print(f"Error cloning repository {repo_url}: {error_msg}")
                 all_repo_commits_structured.append(
                     {
-                        "repo_name": repo_name,
-                        "repo_url": repo_url,
-                        "repo_path": repo_path,
-                        "error": f"Failed to clone: {error_msg}",
-                        "commits": [],
+                        'repo_name': repo_name,
+                        'repo_url': repo_url,
+                        'repo_path': repo_path,
+                        'error': f"Failed to clone: {error_msg}",
+                        'commits': [],
                     },
                 )
                 continue
             except Exception as e:
                 print(
-                    f"An unexpected error occurred during cloning {repo_url}: {e!s}",
+                    f"An unexpected error occurred during cloning {repo_url}: {
+                        e!s}",
                 )
                 all_repo_commits_structured.append(
                     {
-                        "repo_name": repo_name,
-                        "repo_url": repo_url,
-                        "repo_path": repo_path,
-                        "error": f"An unexpected error occurred during cloning: {e!s}",
-                        "commits": [],
+                        'repo_name': repo_name,
+                        'repo_url': repo_url,
+                        'repo_path': repo_path,
+                        'error': f"An unexpected error occurred during cloning: {e!s}",
+                        'commits': [],
                     },
                 )
                 continue
 
             if repo is None:
                 error_msg = (
-                    f"Failed to clone repository (remote returned an error "
-                    f"or is unreachable)"
+                    "Failed to clone repository (remote returned an error "
+                    "or is unreachable)"
                 )
                 print(f"Error: {error_msg}")
                 # Clean up any partial clone directory left behind so the
@@ -292,16 +299,18 @@ def analyze_real_git_commits(
                 if os.path.exists(repo_path):
                     try:
                         shutil.rmtree(repo_path)
-                        print(f"Removed partial clone directory '{repo_path}'.")
+                        print(
+                            f"Removed partial clone directory '{repo_path}'.")
                     except OSError as remove_e:
-                        print(f"Error removing partial directory '{repo_path}': {remove_e}")
+                        print(
+                            f"Error removing partial directory '{repo_path}': {remove_e}")
                 all_repo_commits_structured.append(
                     {
-                        "repo_name": repo_name,
-                        "repo_url": repo_url,
-                        "repo_path": repo_path,
-                        "error": error_msg,
-                        "commits": [],
+                        'repo_name': repo_name,
+                        'repo_url': repo_url,
+                        'repo_path': repo_path,
+                        'error': error_msg,
+                        'commits': [],
                     },
                 )
                 continue
@@ -315,14 +324,16 @@ def analyze_real_git_commits(
                 # Iterate through commits
                 # We filter by `after` date to get commits since `since_date`
                 # and exclude merge commits by checking if the commit has more than one parent.
-                # GitPython's log method can also take `after` and `no_merges` arguments directly.
-                iter_kwargs = {"since": since_date, "no_merges": True}
+                # GitPython's log method can also take `after` and `no_merges`
+                # arguments directly.
+                iter_kwargs = {'since': since_date, 'no_merges': True}
                 if until_date is not None:
-                    iter_kwargs["before"] = until_date
+                    iter_kwargs['before'] = until_date
                 for commit in repo.iter_commits(**iter_kwargs):
                     author_name = commit.author.name
                     author_email = commit.author.email
-                    commit_date = datetime.fromtimestamp(commit.authored_date).isoformat()
+                    commit_date = datetime.fromtimestamp(
+                        commit.authored_date).isoformat()
                     commit_message = commit.message.strip()
                     sha1_hash = commit.hexsha
 
@@ -333,8 +344,10 @@ def analyze_real_git_commits(
                         or comp_id_lower in author_email.lower()
                     )
 
-                    sob_pattern = r'Signed-off-by:.*' + re.escape(comp_id_lower)
-                    sob_match = re.search(sob_pattern, commit_message, re.IGNORECASE)
+                    sob_pattern = r'Signed-off-by:.*' + \
+                        re.escape(comp_id_lower)
+                    sob_match = re.search(
+                        sob_pattern, commit_message, re.IGNORECASE)
 
                     is_signer_match = bool(sob_match)
 
@@ -344,28 +357,29 @@ def analyze_real_git_commits(
                         # let's try to extract the REAL email from the message.
                         if is_signer_match and not is_direct_match:
                             email_extract_pattern = r'<([^>]+)>'
-                            email_match = re.search(email_extract_pattern, sob_match.group(0))
+                            email_match = re.search(
+                                email_extract_pattern, sob_match.group(0))
 
                             if email_match:
                                 author_email = email_match.group(1)
 
                         repo_commits_list.append(
                             {
-                                "hash": commit.hexsha,
-                                "author_name": author_name,
-                                "author_email": author_email,
-                                "date": commit_date,
-                                "message": commit_message,
-                                "sha1": sha1_hash,
+                                'hash': commit.hexsha,
+                                'author_name': author_name,
+                                'author_email': author_email,
+                                'date': commit_date,
+                                'message': commit_message,
+                                'sha1': sha1_hash,
                             },
                         )
 
                 all_repo_commits_structured.append(
                     {
-                        "repo_name": repo_name,
-                        "repo_url": repo_url,
-                        "repo_path": repo_path,
-                        "commits": repo_commits_list,
+                        'repo_name': repo_name,
+                        'repo_url': repo_url,
+                        'repo_path': repo_path,
+                        'commits': repo_commits_list,
                     },
                 )
 
@@ -374,22 +388,22 @@ def analyze_real_git_commits(
                 print(f"Error getting git log for {repo_name}: {error_msg}")
                 all_repo_commits_structured.append(
                     {
-                        "repo_name": repo_name,
-                        "repo_url": repo_url,
-                        "repo_path": repo_path,
-                        "error": f"Failed to get commit log: {error_msg}",
-                        "commits": [],
+                        'repo_name': repo_name,
+                        'repo_url': repo_url,
+                        'repo_path': repo_path,
+                        'error': f"Failed to get commit log: {error_msg}",
+                        'commits': [],
                     },
                 )
             except Exception as e:
                 print(f"Error processing commits for {repo_name}: {e}")
                 all_repo_commits_structured.append(
                     {
-                        "repo_name": repo_name,
-                        "repo_url": repo_url,
-                        "repo_path": repo_path,
-                        "error": f"Error processing commits: {e!s}",
-                        "commits": [],
+                        'repo_name': repo_name,
+                        'repo_url': repo_url,
+                        'repo_path': repo_path,
+                        'error': f"Error processing commits: {e!s}",
+                        'commits': [],
                     },
                 )
             finally:
@@ -397,10 +411,10 @@ def analyze_real_git_commits(
                     repo.close()
 
         return {
-            "commit_data": all_repo_commits_structured,
-            "message": "Commit analysis complete.",
+            'commit_data': all_repo_commits_structured,
+            'message': 'Commit analysis complete.',
         }
 
     except Exception as e:
         print(f"An unexpected error occurred in analyze_real_git_commits: {e}")
-        return {"error": f"An unexpected error occurred: {e!s}"}
+        return {'error': f"An unexpected error occurred: {e!s}"}
