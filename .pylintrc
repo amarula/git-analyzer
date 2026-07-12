@@ -1,2 +1,10 @@
 [FORMAT]
 max-line-length=140
+
+[MAIN]
+ignored-modules=
+    langchain_core.messages,
+    langchain_core.prompts,
+    langchain_openai,
+    markdown_strings,
+    git
