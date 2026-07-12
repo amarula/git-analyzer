@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 from datetime import datetime, timedelta
+from urllib.parse import urlparse
 
 from git import GitCommandError, InvalidGitRepositoryError, NoSuchPathError, Repo
 
@@ -135,6 +136,23 @@ def git_pull_or_clone(remote_url=None, repo_path="."):
         return None # An operation was attempted, even if it failed
 
 
+def _repo_dir_name(repo_url: str) -> str:
+    """Derive a unique directory name from a repository URL.
+
+    Uses the last two path segments (org/repo) to avoid collisions when
+    different hosts or organisations have repos with the same final name
+    (e.g. STMicroelectronics/linux vs torvalds/linux).
+    """
+    parsed = urlparse(repo_url)
+    path = parsed.path.rstrip("/")
+    if path.endswith(".git"):
+        path = path[:-4]
+    segments = [s for s in path.split("/") if s]
+    if len(segments) >= 2:
+        return "_".join(segments[-2:])
+    return segments[-1] if segments else "unknown"
+
+
 def analyze_real_git_commits(
     repo_urls: list[str],
     company_identifier: str,
@@ -175,7 +193,7 @@ def analyze_real_git_commits(
             since_date = datetime.now() - timedelta(days=months_back * 30)
 
         for repo_url in repo_urls:
-            repo_name = repo_url.split("/")[-1].replace(".git", "")
+            repo_name = _repo_dir_name(repo_url)
             repo_path = os.path.join(deploy_target_dir, repo_name)
 
             print(f"Cloning {repo_url} directly into {repo_path}...")
